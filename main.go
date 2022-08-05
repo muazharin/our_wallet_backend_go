@@ -36,6 +36,7 @@ func main() {
 	authRoutes := r.Group("/v1/auth")
 	{
 		authRoutes.POST("/signup", authController.SignUp)
+		authRoutes.POST("/signin", authController.SignIn)
 		authRoutes.POST("/check_phone_number", authController.CheckPhone)
 	}
 

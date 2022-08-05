@@ -3,7 +3,8 @@ package services
 import (
 	"fmt"
 	"time"
-
+	
+	"golang.org/x/crypto/bcrypt"
 	"github.com/muazharin/our_wallet_backend_go/src/entities/database"
 	"github.com/muazharin/our_wallet_backend_go/src/entities/request"
 	"github.com/muazharin/our_wallet_backend_go/src/entities/response"
@@ -13,6 +14,7 @@ import (
 type AuthService interface {
 	CheckPhone(checkPhoneRequest request.AuthCheckPhoneRequest) (int64, error)
 	SignUp(authSignUpRequest request.AuthSignUpRequest) (response.AuthSignUpResponse, error)
+	SignIn(authSignInRequest request.AuthSignInRequest) (response.AuthSignUpResponse, error)
 }
 
 type authService struct {
@@ -73,3 +75,46 @@ func (s *authService) SignUp(authSignUpRequest request.AuthSignUpRequest) (respo
 
 	return authSignUpResponse, nil
 }
+
+func (s *authService) SignIn(authSignInRequest request.AuthSignInRequest) (response.AuthSignUpResponse, error){
+	authSignUpResponse := response.AuthSignUpResponse{}
+	res, err := s.authRepo.SignIn(authSignInRequest)
+	if err != nil {
+		fmt.Println("1")
+		return authSignUpResponse, err
+	}
+	compared, err := comparePassword(res.UserPassword, []byte(authSignInRequest.UserPassword))
+	if err != nil {
+		err = fmt.Errorf("Password Salah!")
+		return authSignUpResponse, err
+	}
+
+	if (res.UserName == authSignInRequest.UserName || res.UserEmail == authSignInRequest.UserName || res.UserPhone == authSignInRequest.UserName) && compared{
+		authSignUpResponse.UserID = res.UserID
+		authSignUpResponse.UserName = res.UserName
+		authSignUpResponse.UserPassword = res.UserPassword
+		authSignUpResponse.UserEmail = res.UserEmail
+		authSignUpResponse.UserPhone = res.UserPhone
+		authSignUpResponse.UserPhoto = res.UserPhoto
+		authSignUpResponse.UserGender = res.UserGender
+		authSignUpResponse.UserTglLahir = res.UserTglLahir.Format("2006-01-02")
+		authSignUpResponse.UserAddress = res.UserAddress
+		authSignUpResponse.UserCreatedAt = res.UserCreatedAt.Format("2006-01-02")
+		authSignUpResponse.UserUpdatedAt = res.UserUpdatedAt.Format("2006-01-02")
+		return authSignUpResponse, nil
+	}
+
+	err = fmt.Errorf("User tidak ditemukan")
+	return authSignUpResponse, err
+}
+
+func comparePassword(hashedPwd string, plainPassword []byte) (bool, error) {
+	byteHash := []byte(hashedPwd)
+	err := bcrypt.CompareHashAndPassword(byteHash, plainPassword)
+	if err != nil {
+		fmt.Println(err)
+		return false, err
+	}
+	return true, nil
+}
+
