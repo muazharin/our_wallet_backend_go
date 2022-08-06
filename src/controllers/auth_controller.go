@@ -46,12 +46,12 @@ func (c *authController) CheckPhone(ctx *gin.Context) {
 		return
 	}
 	if res > 0 {
-		ctx.JSON(http.StatusOk, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"status":  false,
 			"message": "Nomor Anda sudah terdaftar",
 		})
 	} else {
-		ctx.JSON(http.StatusOk, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"status":  true,
 			"message": "Nomor Anda boleh digunakan",
 		})
@@ -87,10 +87,10 @@ func (c *authController) SignUp(ctx *gin.Context) {
 	return
 }
 
-func (c *authController) SignIn(ctx *gin.Context){
+func (c *authController) SignIn(ctx *gin.Context) {
 	var authSignInRequest request.AuthSignInRequest
-	err:= ctx.ShouldBind(&authSignInRequest)
-	if err != nil{
+	err := ctx.ShouldBind(&authSignInRequest)
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status":  false,
 			"message": err.Error(),
