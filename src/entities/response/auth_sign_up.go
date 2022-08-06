@@ -10,6 +10,7 @@ type AuthSignUpResponse struct {
 	UserGender    string `json:"user_gender"`
 	UserTglLahir  string `json:"user_tgl_lahir"`
 	UserAddress   string `json:"user_address"`
+	UserStatus    string `json:"user_status"`
 	UserCreatedAt string `json:"user_created_at"`
 	UserUpdatedAt string `json:"user_updated_at"`
 }

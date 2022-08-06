@@ -35,14 +35,18 @@ func (db *userConnection) CheckUserByID(userId int64) (int64, error) {
 }
 func (db *userConnection) CreatePassword(userCreatePasswordRequest request.UserCreatePasswordRequest, userId int64) error {
 	var user database.Users
-
+	count, _ := db.CheckUserByID(userId)
+	if count < 0 {
+		err := fmt.Errorf("user tidak ditemukan")
+		return err
+	}
 	db.connection.Where("user_id = ?", &userId).First(&user)
 	user.UserPassword = hashAndSalt([]byte(userCreatePasswordRequest.Password))
+	user.UserStatus = "complete"
 	err := db.connection.Save(&user)
 	if err.Error != nil {
 		return err.Error
 	}
-
 	return nil
 }
 

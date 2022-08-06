@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/muazharin/our_wallet_backend_go/src/entities/request"
+	"github.com/muazharin/our_wallet_backend_go/src/entities/response"
 	"github.com/muazharin/our_wallet_backend_go/src/services"
 )
 
@@ -28,6 +29,7 @@ func NewAuthController(authService services.AuthService, jwtService services.JWT
 
 func (c *authController) CheckPhone(ctx *gin.Context) {
 	var chekPhoneRequest request.AuthCheckPhoneRequest
+	var authResponse response.AuthResponse
 	err := ctx.ShouldBind(&chekPhoneRequest)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -37,7 +39,7 @@ func (c *authController) CheckPhone(ctx *gin.Context) {
 		return
 	}
 
-	res, err := c.authService.CheckPhone(chekPhoneRequest)
+	count, res, err := c.authService.CheckPhone(chekPhoneRequest)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -45,10 +47,13 @@ func (c *authController) CheckPhone(ctx *gin.Context) {
 		})
 		return
 	}
-	if res > 0 {
+	authResponse.Token = c.jwtService.GenerateToken(res)
+	authResponse.UserStatus = res.UserStatus
+	if count > 0 {
 		ctx.JSON(http.StatusOK, gin.H{
 			"status":  false,
 			"message": "Nomor Anda sudah terdaftar",
+			"data":    &authResponse,
 		})
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{
@@ -57,11 +62,11 @@ func (c *authController) CheckPhone(ctx *gin.Context) {
 		})
 
 	}
-	return
 }
 
 func (c *authController) SignUp(ctx *gin.Context) {
 	var authSignUpRequest request.AuthSignUpRequest
+	var authResponse response.AuthResponse
 	err := ctx.ShouldBind(&authSignUpRequest)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -78,17 +83,18 @@ func (c *authController) SignUp(ctx *gin.Context) {
 		})
 		return
 	}
-	generatedToken := c.jwtService.GenerateToken(res)
+	authResponse.Token = c.jwtService.GenerateToken(res)
+	authResponse.UserStatus = res.UserStatus
 	ctx.JSON(http.StatusCreated, gin.H{
 		"status":  true,
 		"message": "Selamat! Anda telah terdaftar",
-		"token":   &generatedToken,
+		"data":    &authResponse,
 	})
-	return
 }
 
 func (c *authController) SignIn(ctx *gin.Context) {
 	var authSignInRequest request.AuthSignInRequest
+	var authResponse response.AuthResponse
 	err := ctx.ShouldBind(&authSignInRequest)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -105,11 +111,11 @@ func (c *authController) SignIn(ctx *gin.Context) {
 		})
 		return
 	}
-	generatedToken := c.jwtService.GenerateToken(res)
+	authResponse.Token = c.jwtService.GenerateToken(res)
+	authResponse.UserStatus = res.UserStatus
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "Selamat! Anda berhasil login",
-		"token":   &generatedToken,
+		"data":    &authResponse,
 	})
-	return
 }

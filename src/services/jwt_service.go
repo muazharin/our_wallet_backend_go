@@ -40,6 +40,7 @@ func NewJWTService() JWTService {
 		secretKey: getSecretKey(),
 	}
 }
+
 func getSecretKey() string {
 	err := godotenv.Load()
 	if err != nil {
@@ -78,7 +79,7 @@ func (j *jwtService) GenerateToken(v response.AuthSignUpResponse) string {
 func (j *jwtService) ValidateToken(token string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(t_ *jwt.Token) (interface{}, error) {
 		if _, ok := t_.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method %v", t_.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method %v", t_.Header["alg"])
 		}
 		return []byte(j.secretKey), nil
 	})
