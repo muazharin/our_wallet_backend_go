@@ -114,8 +114,8 @@ func (s *authService) SignIn(authSignInRequest request.AuthSignInRequest) (respo
 		authSignUpResponse.UserTglLahir = res.UserTglLahir.Format("2006-01-02")
 		authSignUpResponse.UserAddress = res.UserAddress
 		authSignUpResponse.UserStatus = res.UserStatus
-		authSignUpResponse.UserCreatedAt = res.UserCreatedAt.Format("2006-01-02")
-		authSignUpResponse.UserUpdatedAt = res.UserUpdatedAt.Format("2006-01-02")
+		authSignUpResponse.UserCreatedAt = res.UserCreatedAt.Format("2006-01-02 15:04:05")
+		authSignUpResponse.UserUpdatedAt = res.UserUpdatedAt.Format("2006-01-02 15:04:05")
 		return authSignUpResponse, nil
 	}
 
