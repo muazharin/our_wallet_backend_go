@@ -14,14 +14,23 @@ import (
 )
 
 var (
-	db             *gorm.DB                   = config.Connection()
-	jwtService     services.JWTService        = services.NewJWTService()
-	authRepo       repositories.AuthRepo      = repositories.NewAuthRepo(db)
-	authService    services.AuthService       = services.NewAuthService(authRepo)
-	authController controllers.AuthController = controllers.NewAuthController(authService, jwtService)
-	userRepo       repositories.UserRepo      = repositories.NewUserRepo(db)
-	userService    services.UserService       = services.NewUserService(userRepo)
-	userController controllers.UserController = controllers.NewUserController(userService, jwtService)
+	db                 *gorm.DB                       = config.Connection()
+	jwtService         services.JWTService            = services.NewJWTService()
+	authRepo           repositories.AuthRepo          = repositories.NewAuthRepo(db)
+	authService        services.AuthService           = services.NewAuthService(authRepo)
+	authController     controllers.AuthController     = controllers.NewAuthController(authService, jwtService)
+	userRepo           repositories.UserRepo          = repositories.NewUserRepo(db)
+	userService        services.UserService           = services.NewUserService(userRepo)
+	userController     controllers.UserController     = controllers.NewUserController(userService, jwtService)
+	categoryRepo       repositories.CategoryRepo      = repositories.NewCategoryRepo(db)
+	categoryService    services.CategoryService       = services.NewCategoryService(categoryRepo)
+	categoryController controllers.CategoryController = controllers.NewCategoryController(categoryService, jwtService)
+	walletRepo         repositories.WalletRepo        = repositories.NewWalletRepo(db)
+	walletService      services.WalletService         = services.NewWalletService(walletRepo)
+	walletController   controllers.WalletController   = controllers.NewWalletController(walletService, jwtService)
+	owRepo             repositories.OWRepo            = repositories.NewOWRepo(db)
+	owService          services.OWService             = services.NewOWService(owRepo)
+	owController       controllers.OWController       = controllers.NewOWController(owService, jwtService)
 )
 
 func setupLogOutput() {
@@ -30,6 +39,7 @@ func setupLogOutput() {
 }
 
 func main() {
+	setupLogOutput()
 	r := gin.New()
 	r.Use(gin.Recovery(), middlewares.Logger(), middlewares.CORSMiddleware(), middlewares.APIKey())
 
@@ -44,6 +54,23 @@ func main() {
 	{
 		userRoutes.POST("/create_password", userController.CreatePassword)
 
+	}
+
+	catergoryRoutes := r.Group("/v1/category", middlewares.AuthorizeJWT(jwtService))
+	{
+		catergoryRoutes.POST("/add_category", categoryController.AddCategory)
+		catergoryRoutes.GET("/get_all_category", categoryController.GetAllCategory)
+	}
+
+	walletRoutes := r.Group("/v1/wallet", middlewares.AuthorizeJWT(jwtService))
+	{
+		walletRoutes.POST("/create_wallet", walletController.CreateWallet)
+		walletRoutes.GET("/get_all_wallet", walletController.GetAllWallet)
+	}
+
+	owRoutes := r.Group("/v1/ow", middlewares.AuthorizeJWT(jwtService))
+	{
+		owRoutes.GET("/get_ow_user", owController.GetOwUser)
 	}
 
 	r.Run()
