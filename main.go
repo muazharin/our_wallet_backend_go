@@ -71,6 +71,7 @@ func main() {
 	owRoutes := r.Group("/v1/ow", middlewares.AuthorizeJWT(jwtService))
 	{
 		owRoutes.GET("/get_ow_user", owController.GetOwUser)
+		owRoutes.GET("/get_for_member", owController.GetForMember)
 	}
 
 	r.Run()

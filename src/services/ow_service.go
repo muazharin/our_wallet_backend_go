@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/muazharin/our_wallet_backend_go/src/entities/database"
 	"github.com/muazharin/our_wallet_backend_go/src/entities/request"
 	"github.com/muazharin/our_wallet_backend_go/src/entities/response"
 	"github.com/muazharin/our_wallet_backend_go/src/repositories"
@@ -8,6 +9,7 @@ import (
 
 type OWService interface {
 	GetOwUser(owGetUserReq request.OwGetUserReq) ([]response.GetOwUserRes, error)
+	GetForMember(owGetUserReq request.OwGetUserReq) ([]database.Users, error)
 }
 
 type owService struct {
@@ -40,4 +42,12 @@ func (s *owService) GetOwUser(owGetUserReq request.OwGetUserReq) ([]response.Get
 		getOwUserRess = append(getOwUserRess, getOwUserRes)
 	}
 	return getOwUserRess, nil
+}
+
+func (s *owService) GetForMember(owGetUserReq request.OwGetUserReq) ([]database.Users, error) {
+	res, err := s.owRepo.GetForMember(owGetUserReq)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
