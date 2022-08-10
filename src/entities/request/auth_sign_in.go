@@ -1,6 +1,6 @@
 package request
 
 type AuthSignInRequest struct {
-	UserName     string `form:"username" json:"username" binding:"required"`
-	UserPassword string `form:"password" json:"password" binding:"required"`
+	UserName     string `form:"username" bson:"username" binding:"required"`
+	UserPassword string `form:"password" bson:"password" binding:"required"`
 }
