@@ -9,7 +9,7 @@ import (
 )
 
 type OWRepo interface {
-	GetOwUser(owGetUserReq request.OwGetUserReq) ([]database.Users, error)
+	GetOwUser(owGetUserReq request.OwGetUserReq, isAll bool) ([]database.Users, error)
 	GetForMember(owGetUserReq request.OwGetUserReq) ([]database.Users, error)
 	CheckMember(owAddMemberReq request.OwAddMemberReq, userId int64) (int64, error)
 	AddMember(owWallet database.OurWallet) error
@@ -25,13 +25,22 @@ func NewOWRepo(connection *gorm.DB) OWRepo {
 	}
 }
 
-func (db *owConnection) GetOwUser(owGetUserReq request.OwGetUserReq) ([]database.Users, error) {
+func (db *owConnection) GetOwUser(owGetUserReq request.OwGetUserReq, isAll bool) ([]database.Users, error) {
 	var user []database.Users
-	err := db.connection.Model(&database.Users{}).
-		Joins("left join our_wallets ON our_wallets.ow_user_id = users.user_id").
-		Where("our_wallets.ow_is_user_active = ? AND our_wallets.ow_wallet_id = ?", true, owGetUserReq.WalletId).
-		Offset((int(owGetUserReq.Page) - 1) * 10).Limit(10).
-		Scan(&user)
+	var err *gorm.DB
+	if isAll {
+		err = db.connection.Model(&database.Users{}).
+			Joins("left join our_wallets ON our_wallets.ow_user_id = users.user_id").
+			Where("our_wallets.ow_wallet_id = ?", owGetUserReq.WalletId).
+			Offset((int(owGetUserReq.Page) - 1) * 10).Limit(10).
+			Scan(&user)
+	} else {
+		err = db.connection.Model(&database.Users{}).
+			Joins("left join our_wallets ON our_wallets.ow_user_id = users.user_id").
+			Where("our_wallets.ow_is_user_active = ? AND our_wallets.ow_wallet_id = ?", true, owGetUserReq.WalletId).
+			Offset((int(owGetUserReq.Page) - 1) * 10).Limit(10).
+			Scan(&user)
+	}
 	if err.Error != nil {
 		return nil, err.Error
 	}
@@ -42,7 +51,7 @@ func (db *owConnection) GetForMember(owGetUserReq request.OwGetUserReq) ([]datab
 	var listId []int64
 	var user database.Users
 	var users []database.Users
-	res, e := db.GetOwUser(owGetUserReq)
+	res, e := db.GetOwUser(owGetUserReq, true)
 	if e != nil {
 		return nil, e
 	}

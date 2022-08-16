@@ -29,7 +29,7 @@ func NewOWService(owRepo repositories.OWRepo) OWService {
 func (s *owService) GetOwUser(owGetUserReq request.OwGetUserReq) ([]response.GetOwUserRes, error) {
 	var getOwUserRes response.GetOwUserRes
 	var getOwUserRess []response.GetOwUserRes
-	res, err := s.owRepo.GetOwUser(owGetUserReq)
+	res, err := s.owRepo.GetOwUser(owGetUserReq, false)
 	if err != nil {
 		return nil, err
 	}
