@@ -11,6 +11,8 @@ import (
 type OWRepo interface {
 	GetOwUser(owGetUserReq request.OwGetUserReq) ([]database.Users, error)
 	GetForMember(owGetUserReq request.OwGetUserReq) ([]database.Users, error)
+	CheckMember(owAddMemberReq request.OwAddMemberReq, userId int64) (int64, error)
+	AddMember(owWallet database.OurWallet) error
 }
 
 type owConnection struct {
@@ -67,4 +69,22 @@ func (db *owConnection) GetForMember(owGetUserReq request.OwGetUserReq) ([]datab
 		return nil, err.Error
 	}
 	return users, nil
+}
+
+func (db *owConnection) CheckMember(owAddMemberReq request.OwAddMemberReq, userId int64) (int64, error) {
+	var owWallet database.OurWallet
+	var count int64
+	err := db.connection.Where("ow_wallet_id=? AND ow_is_admin=? AND ow_user_id=?", owAddMemberReq.OwWalletId, true, userId).
+		Find(&owWallet).Count(&count)
+	if err.Error != nil {
+		return count, err.Error
+	}
+	return count, nil
+}
+func (db *owConnection) AddMember(owWallet database.OurWallet) error {
+	err := db.connection.Save(&owWallet)
+	if err.Error != nil {
+		return err.Error
+	}
+	return nil
 }

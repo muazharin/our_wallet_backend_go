@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/muazharin/our_wallet_backend_go/src/entities/request"
 	"github.com/muazharin/our_wallet_backend_go/src/services"
@@ -12,6 +15,7 @@ import (
 type OWController interface {
 	GetOwUser(ctx *gin.Context)
 	GetForMember(ctx *gin.Context)
+	AddMember(ctx *gin.Context)
 }
 
 type owController struct {
@@ -95,4 +99,42 @@ func (c *owController) GetForMember(ctx *gin.Context) {
 		"message": "menampilkan data",
 		"data":    &res,
 	})
+}
+
+func (c *owController) AddMember(ctx *gin.Context) {
+	var owAddMemberReq request.OwAddMemberReq
+	authHeader := ctx.GetHeader("Authorization")
+	authHeader = strings.Split(authHeader, "Bearer ")[1]
+	userID := c.getUserIDByToken(authHeader)
+	convertedUserID, _ := strconv.ParseInt(userID, 10, 64)
+	err := ctx.ShouldBind(&owAddMemberReq)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	err = c.owService.AddMember(owAddMemberReq, convertedUserID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "User berhasil ditambahkan",
+	})
+}
+
+func (c *owController) getUserIDByToken(token string) string {
+	Token, err := c.jwtService.ValidateToken(token)
+	if err != nil {
+		panic(err.Error())
+	}
+	claims := Token.Claims.(jwt.MapClaims)
+	id := fmt.Sprintf("%v", claims["user_id"])
+	return id
 }

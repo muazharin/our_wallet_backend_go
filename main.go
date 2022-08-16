@@ -72,6 +72,7 @@ func main() {
 	{
 		owRoutes.GET("/get_ow_user", owController.GetOwUser)
 		owRoutes.GET("/get_for_member", owController.GetForMember)
+		owRoutes.POST("/add_member", owController.AddMember)
 	}
 
 	r.Run()
