@@ -37,7 +37,7 @@ func (db *owConnection) GetOwUser(owGetUserReq request.OwGetUserReq, isAll bool)
 	} else {
 		err = db.connection.Model(&database.Users{}).
 			Joins("left join our_wallets ON our_wallets.ow_user_id = users.user_id").
-			Where("our_wallets.ow_is_user_active = ? AND our_wallets.ow_wallet_id = ?", true, owGetUserReq.WalletId).
+			Where("our_wallets.ow_is_user_active = ? AND our_wallets.ow_wallet_id = ?", 1, owGetUserReq.WalletId).
 			Offset((int(owGetUserReq.Page) - 1) * 10).Limit(10).
 			Scan(&user)
 	}

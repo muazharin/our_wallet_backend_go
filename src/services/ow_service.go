@@ -82,7 +82,7 @@ func (s *owService) AddMember(owAddMemberReq request.OwAddMemberReq, userId int6
 	owWallet.OwID = time.Now().Unix()
 	owWallet.OwUserID = owAddMemberReq.OwMemberId
 	owWallet.OwWalletID = owAddMemberReq.OwWalletId
-	owWallet.OwIsUserActive = false
+	owWallet.OwIsUserActive = 0
 	owWallet.OwIsAdmin = false
 	owWallet.OwDate = time.Now()
 	err = s.owRepo.AddMember(owWallet)

@@ -45,7 +45,7 @@ func (s *walletService) CreateWallet(createwallet request.WalletCreateReq, userI
 	our_wallet.OwID = time.Now().Unix()
 	our_wallet.OwWalletID = wallet.WalletID
 	our_wallet.OwUserID = userId
-	our_wallet.OwIsUserActive = true
+	our_wallet.OwIsUserActive = 1
 	our_wallet.OwIsAdmin = true
 	our_wallet.OwDate = time.Now()
 	err := s.walletRepo.CreateWallet(wallet, our_wallet)
