@@ -27,6 +27,6 @@ func Connection() *gorm.DB {
 		panic("Failed to create connection to database")
 	}
 	fmt.Println("Berhasil terhubung ke MySql")
-	db.AutoMigrate(database.Users{}, database.Wallets{}, database.OurWallet{}, database.Category{}, database.Transaction{}, database.TransactionFile{})
+	db.AutoMigrate(database.Users{}, database.Wallets{}, database.OurWallet{}, database.Category{}, database.Transaction{}, database.TransactionFile{}, database.Notification{})
 	return db
 }
