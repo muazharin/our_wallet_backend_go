@@ -10,6 +10,7 @@ import (
 
 type WalletService interface {
 	GetAllWallet(userId int64, page int64) ([]database.Wallets, error)
+	GetInvitationWallet(userId int64, page int64) ([]database.Wallets, error)
 	CreateWallet(createwallet request.WalletCreateReq, userId int64) error
 }
 
@@ -25,6 +26,14 @@ func NewWalletService(walletRepo repositories.WalletRepo) WalletService {
 
 func (s *walletService) GetAllWallet(userId int64, page int64) ([]database.Wallets, error) {
 	res, err := s.walletRepo.GetAllWallet(userId, page)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+
+}
+func (s *walletService) GetInvitationWallet(userId int64, page int64) ([]database.Wallets, error) {
+	res, err := s.walletRepo.GetInvitationWallet(userId, page)
 	if err != nil {
 		return nil, err
 	}

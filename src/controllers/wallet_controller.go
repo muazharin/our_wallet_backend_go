@@ -14,6 +14,7 @@ import (
 
 type WalletController interface {
 	GetAllWallet(ctx *gin.Context)
+	GetInvitationWallet(ctx *gin.Context)
 	CreateWallet(ctx *gin.Context)
 }
 
@@ -64,6 +65,34 @@ func (c *walletController) GetAllWallet(ctx *gin.Context) {
 	userId := c.getUserIDByToken(authHeader)
 	convertedUserID, _ := strconv.ParseInt(userId, 10, 64)
 	res, err := c.walletService.GetAllWallet(convertedUserID, page)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "data tidak ditemukan",
+		})
+		return
+	}
+	if res == nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status":  true,
+			"message": "menampilkan data",
+			"data":    []string{},
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "menampilkan data",
+		"data":    &res,
+	})
+}
+func (c *walletController) GetInvitationWallet(ctx *gin.Context) {
+	page, _ := strconv.ParseInt(ctx.Request.URL.Query().Get("page"), 10, 64)
+	authHeader := ctx.GetHeader("Authorization")
+	authHeader = strings.Split(authHeader, "Bearer ")[1]
+	userId := c.getUserIDByToken(authHeader)
+	convertedUserID, _ := strconv.ParseInt(userId, 10, 64)
+	res, err := c.walletService.GetInvitationWallet(convertedUserID, page)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,

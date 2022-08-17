@@ -14,15 +14,18 @@ type OWService interface {
 	GetOwUser(owGetUserReq request.OwGetUserReq) ([]response.GetOwUserRes, error)
 	GetForMember(owGetUserReq request.OwGetUserReq) ([]response.GetOwUserRes, error)
 	AddMember(owAddMemberReq request.OwAddMemberReq, userId int64) error
+	ConfirmInvitation(confirmInvitation request.OwConfirmInvitation, userId int64) error
 }
 
 type owService struct {
-	owRepo repositories.OWRepo
+	owRepo    repositories.OWRepo
+	notifRepo repositories.NotifRepo
 }
 
-func NewOWService(owRepo repositories.OWRepo) OWService {
+func NewOWService(owRepo repositories.OWRepo, notifRepo repositories.NotifRepo) OWService {
 	return &owService{
-		owRepo: owRepo,
+		owRepo:    owRepo,
+		notifRepo: notifRepo,
 	}
 }
 
@@ -74,20 +77,58 @@ func (s *owService) GetForMember(owGetUserReq request.OwGetUserReq) ([]response.
 
 func (s *owService) AddMember(owAddMemberReq request.OwAddMemberReq, userId int64) error {
 	var owWallet database.OurWallet
+	var notif database.Notification
+
+	// mengecek keanggotaan
 	count, err := s.owRepo.CheckMember(owAddMemberReq, userId)
 	if err != nil || count == 0 {
 		err = fmt.Errorf("anda tidak memiliki hak akses")
 		return err
 	}
+	// mengajukan undangan
 	owWallet.OwID = time.Now().Unix()
 	owWallet.OwUserID = owAddMemberReq.OwMemberId
 	owWallet.OwWalletID = owAddMemberReq.OwWalletId
 	owWallet.OwIsUserActive = 0
 	owWallet.OwIsAdmin = false
-	owWallet.OwDate = time.Now()
+	owWallet.OwInviterID = userId
 	err = s.owRepo.AddMember(owWallet)
 	if err != nil {
 		return err
 	}
+
+	// mengirim notifikasi kepada calon member
+	notif.NotificationID = time.Now().Unix()
+	notif.NotificationPusherID = userId
+	notif.NotificationReceiverID = owAddMemberReq.OwMemberId
+	notif.NotificationMessage = "Anda memiliki 1 undangan menjadi anggota wallet"
+	notif.NotificationRoute = "/"
+	notif.NotificationIsRead = false
+	s.notifRepo.SendNotif(notif)
+	return nil
+}
+
+func (s *owService) ConfirmInvitation(confirmInvitation request.OwConfirmInvitation, userId int64) error {
+	var notif database.Notification
+	// mengirim konfirmasi
+	ow, err := s.owRepo.ConfirmInvitation(confirmInvitation, userId)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("owService : ", ow.OwInviterID)
+
+	// mengirim notifikasi
+	notif.NotificationID = time.Now().Unix()
+	notif.NotificationPusherID = userId
+	notif.NotificationReceiverID = ow.OwInviterID
+	if confirmInvitation.ConfirmReply {
+		notif.NotificationMessage = "Undangan anda diterima"
+	} else {
+		notif.NotificationMessage = "Undangan anda ditolak"
+	}
+	notif.NotificationRoute = "/"
+	notif.NotificationIsRead = false
+	s.notifRepo.SendNotif(notif)
 	return nil
 }

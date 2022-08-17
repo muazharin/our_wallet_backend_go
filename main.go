@@ -16,6 +16,7 @@ import (
 var (
 	db                 *gorm.DB                       = config.Connection()
 	jwtService         services.JWTService            = services.NewJWTService()
+	notifRepo          repositories.NotifRepo         = repositories.NewNotifRepo(db)
 	authRepo           repositories.AuthRepo          = repositories.NewAuthRepo(db)
 	authService        services.AuthService           = services.NewAuthService(authRepo)
 	authController     controllers.AuthController     = controllers.NewAuthController(authService, jwtService)
@@ -29,7 +30,7 @@ var (
 	walletService      services.WalletService         = services.NewWalletService(walletRepo)
 	walletController   controllers.WalletController   = controllers.NewWalletController(walletService, jwtService)
 	owRepo             repositories.OWRepo            = repositories.NewOWRepo(db)
-	owService          services.OWService             = services.NewOWService(owRepo)
+	owService          services.OWService             = services.NewOWService(owRepo, notifRepo)
 	owController       controllers.OWController       = controllers.NewOWController(owService, jwtService)
 )
 
@@ -52,7 +53,7 @@ func main() {
 
 	userRoutes := r.Group("/v1/user", middlewares.AuthorizeJWT(jwtService))
 	{
-		userRoutes.POST("/create_password", userController.CreatePassword)
+		userRoutes.PUT("/create_password", userController.CreatePassword)
 
 	}
 
@@ -66,6 +67,7 @@ func main() {
 	{
 		walletRoutes.POST("/create_wallet", walletController.CreateWallet)
 		walletRoutes.GET("/get_all_wallet", walletController.GetAllWallet)
+		walletRoutes.GET("/get_invitation_wallet", walletController.GetInvitationWallet)
 	}
 
 	owRoutes := r.Group("/v1/ow", middlewares.AuthorizeJWT(jwtService))
@@ -73,6 +75,8 @@ func main() {
 		owRoutes.GET("/get_ow_user", owController.GetOwUser)
 		owRoutes.GET("/get_for_member", owController.GetForMember)
 		owRoutes.POST("/add_member", owController.AddMember)
+		owRoutes.PUT("/confirm_invitation", owController.ConfirmInvitation)
+
 	}
 
 	r.Run()

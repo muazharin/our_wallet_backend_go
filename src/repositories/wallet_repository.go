@@ -7,6 +7,7 @@ import (
 
 type WalletRepo interface {
 	GetAllWallet(userId int64, page int64) ([]database.Wallets, error)
+	GetInvitationWallet(userId int64, page int64) ([]database.Wallets, error)
 	CreateWallet(wallet database.Wallets, our_wallet database.OurWallet) error
 }
 
@@ -24,7 +25,20 @@ func (db *walletConnection) GetAllWallet(userId int64, page int64) ([]database.W
 	var wallet []database.Wallets
 	err := db.connection.Model(&database.Wallets{}).
 		Joins("left join our_wallets on our_wallets.ow_wallet_id = wallets.wallet_id").
-		Where("our_wallets.ow_user_id = ? AND wallets.wallet_is_active = ?", userId, true).
+		Where("our_wallets.ow_user_id = ? AND wallets.wallet_is_active = ? AND our_wallets.ow_is_user_active = ?", userId, true, 1).
+		Offset((int(page) - 1) * 10).Limit(10).
+		Scan(&wallet)
+	if err.Error != nil {
+		return nil, err.Error
+	}
+	return wallet, nil
+}
+
+func (db *walletConnection) GetInvitationWallet(userId int64, page int64) ([]database.Wallets, error) {
+	var wallet []database.Wallets
+	err := db.connection.Model(&database.Wallets{}).
+		Joins("left join our_wallets on our_wallets.ow_wallet_id = wallets.wallet_id").
+		Where("our_wallets.ow_user_id = ? AND wallets.wallet_is_active = ? AND our_wallets.ow_is_user_active = ?", userId, true, 0).
 		Offset((int(page) - 1) * 10).Limit(10).
 		Scan(&wallet)
 	if err.Error != nil {

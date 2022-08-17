@@ -9,4 +9,5 @@ type OurWallet struct {
 	OwIsUserActive int       `gorm:"not null" json:"ow_is_user_active"`
 	OwIsAdmin      bool      `gorm:"not null" json:"ow_is_admin"`
 	OwDate         time.Time `json:"ow_date"`
+	OwInviterID    int64     `gorm:"not null" json:"ow_inviter_id"`
 }

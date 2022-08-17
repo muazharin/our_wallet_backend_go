@@ -16,6 +16,7 @@ type OWController interface {
 	GetOwUser(ctx *gin.Context)
 	GetForMember(ctx *gin.Context)
 	AddMember(ctx *gin.Context)
+	ConfirmInvitation(ctx *gin.Context)
 }
 
 type owController struct {
@@ -126,6 +127,33 @@ func (c *owController) AddMember(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "User berhasil ditambahkan",
+	})
+}
+func (c *owController) ConfirmInvitation(ctx *gin.Context) {
+	var confirmInvitation request.OwConfirmInvitation
+	authHeader := ctx.GetHeader("Authorization")
+	authHeader = strings.Split(authHeader, "Bearer ")[1]
+	userID := c.getUserIDByToken(authHeader)
+	convertedUserID, _ := strconv.ParseInt(userID, 10, 64)
+	err := ctx.ShouldBind(&confirmInvitation)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	err = c.owService.ConfirmInvitation(confirmInvitation, convertedUserID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Undangan berhasil dikonfirmasi",
 	})
 }
 

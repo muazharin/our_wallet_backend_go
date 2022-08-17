@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/muazharin/our_wallet_backend_go/src/entities/database"
 	"github.com/muazharin/our_wallet_backend_go/src/entities/request"
@@ -13,6 +14,7 @@ type OWRepo interface {
 	GetForMember(owGetUserReq request.OwGetUserReq) ([]database.Users, error)
 	CheckMember(owAddMemberReq request.OwAddMemberReq, userId int64) (int64, error)
 	AddMember(owWallet database.OurWallet) error
+	ConfirmInvitation(confirmInvitation request.OwConfirmInvitation, userId int64) (database.OurWallet, error)
 }
 
 type owConnection struct {
@@ -90,10 +92,36 @@ func (db *owConnection) CheckMember(owAddMemberReq request.OwAddMemberReq, userI
 	}
 	return count, nil
 }
+
 func (db *owConnection) AddMember(owWallet database.OurWallet) error {
 	err := db.connection.Save(&owWallet)
 	if err.Error != nil {
 		return err.Error
 	}
 	return nil
+}
+
+func (db *owConnection) ConfirmInvitation(confirmInvitation request.OwConfirmInvitation, userId int64) (database.OurWallet, error) {
+	var owWallet database.OurWallet
+	err := db.connection.
+		Where("ow_wallet_id = ? AND ow_user_id = ?", confirmInvitation.ConfirmWalletId, userId).
+		First(&owWallet)
+	if err.Error != nil {
+		return owWallet, err.Error
+	}
+	fmt.Println("owRepo", owWallet.OwInviterID)
+	if confirmInvitation.ConfirmReply {
+		owWallet.OwIsUserActive = 1
+		owWallet.OwDate = time.Now()
+		err = db.connection.Save(&owWallet)
+	} else {
+		err = db.connection.Delete(&owWallet)
+	}
+
+	if err.Error != nil {
+		err.Error = fmt.Errorf("gagal mengkonfirmasi undangan")
+		return owWallet, err.Error
+	}
+	return owWallet, nil
+
 }
