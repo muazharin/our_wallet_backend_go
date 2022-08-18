@@ -37,7 +37,7 @@ func (c *owController) GetOwUser(ctx *gin.Context) {
 	owGetUserReq.WalletId, _ = strconv.ParseInt(ctx.Request.URL.Query().Get("wallet_id"), 10, 64)
 	err := ctx.ShouldBind(&owGetUserReq)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
 		})
@@ -73,7 +73,7 @@ func (c *owController) GetForMember(ctx *gin.Context) {
 	owGetUserReq.Keyword = ctx.Request.URL.Query().Get("keyword")
 	err := ctx.ShouldBind(&owGetUserReq)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
 		})
