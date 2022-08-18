@@ -8,11 +8,13 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/muazharin/our_wallet_backend_go/src/entities/request"
 	"github.com/muazharin/our_wallet_backend_go/src/services"
 )
 
 type NotifController interface {
 	GetAllNotif(ctx *gin.Context)
+	IsReadNotif(ctx *gin.Context)
 }
 
 type notifController struct {
@@ -55,6 +57,30 @@ func (c *notifController) GetAllNotif(ctx *gin.Context) {
 		"status":  true,
 		"message": "menampilkan data",
 		"data":    &res,
+	})
+}
+
+func (c *notifController) IsReadNotif(ctx *gin.Context) {
+	var isReadNotifReq request.IsReadNotifReq
+	err := ctx.ShouldBind(&isReadNotifReq)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	err = c.notifService.IsReadNotif(isReadNotifReq)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Notifikasi telah dibaca",
 	})
 }
 

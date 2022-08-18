@@ -83,6 +83,7 @@ func main() {
 	notifRoutes := r.Group("/v1/notif", middlewares.AuthorizeJWT(jwtService))
 	{
 		notifRoutes.GET("/get_all_notif", notifController.GetAllNotif)
+		notifRoutes.PUT("/is_read_notif", notifController.IsReadNotif)
 	}
 
 	r.Run()

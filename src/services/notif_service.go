@@ -2,11 +2,13 @@ package services
 
 import (
 	"github.com/muazharin/our_wallet_backend_go/src/entities/database"
+	"github.com/muazharin/our_wallet_backend_go/src/entities/request"
 	"github.com/muazharin/our_wallet_backend_go/src/repositories"
 )
 
 type NotifService interface {
 	GetAllNotif(userId int64, page int64) ([]database.Notification, error)
+	IsReadNotif(isReadNotifReq request.IsReadNotifReq) error
 }
 
 type notifService struct {
@@ -25,4 +27,12 @@ func (s *notifService) GetAllNotif(userId int64, page int64) ([]database.Notific
 		return []database.Notification{}, err
 	}
 	return res, nil
+}
+
+func (s *notifService) IsReadNotif(isReadNotifReq request.IsReadNotifReq) error {
+	err := s.notifRepo.IsReadNotif(isReadNotifReq)
+	if err != nil {
+		return err
+	}
+	return nil
 }

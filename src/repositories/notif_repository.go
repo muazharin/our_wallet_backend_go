@@ -4,12 +4,14 @@ import (
 	"fmt"
 
 	"github.com/muazharin/our_wallet_backend_go/src/entities/database"
+	"github.com/muazharin/our_wallet_backend_go/src/entities/request"
 	"gorm.io/gorm"
 )
 
 type NotifRepo interface {
 	SendNotif(notifSend database.Notification) error
 	GetAllNotif(userId int64, page int64) ([]database.Notification, error)
+	IsReadNotif(isReadNotifReq request.IsReadNotifReq) error
 }
 
 type notifRepo struct {
@@ -44,4 +46,22 @@ func (db *notifRepo) GetAllNotif(userId int64, page int64) ([]database.Notificat
 	}
 
 	return notifs, nil
+}
+
+func (db *notifRepo) IsReadNotif(isReadNotifReq request.IsReadNotifReq) error {
+	var notif database.Notification
+	err := db.connection.Where(&database.Notification{
+		NotificationID: isReadNotifReq.NotifId,
+	}).First(&notif)
+	if err.Error != nil {
+		err.Error = fmt.Errorf("notifikasi tidak ditemukan")
+		return err.Error
+	}
+	notif.NotificationIsRead = true
+	err = db.connection.Save(&notif)
+	if err.Error != nil {
+		err.Error = fmt.Errorf("gagal membaca notifikasi")
+		return err.Error
+	}
+	return nil
 }
