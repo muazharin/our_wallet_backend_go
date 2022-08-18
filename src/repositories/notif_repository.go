@@ -32,7 +32,7 @@ func (db *notifRepo) SendNotif(notifSend database.Notification) error {
 }
 
 func (db *notifRepo) GetAllNotif(userId int64, page int64) ([]database.Notification, error) {
-	var notif []database.Notification
+	var notif database.Notification
 	var notifs []database.Notification
 	err := db.connection.Where(&database.Notification{
 		NotificationReceiverID: userId,
