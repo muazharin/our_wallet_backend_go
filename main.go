@@ -17,6 +17,8 @@ var (
 	db                 *gorm.DB                       = config.Connection()
 	jwtService         services.JWTService            = services.NewJWTService()
 	notifRepo          repositories.NotifRepo         = repositories.NewNotifRepo(db)
+	notifService       services.NotifService          = services.NewNotifService(notifRepo)
+	notifController    controllers.NotifController    = controllers.NewNotifController(notifService, jwtService)
 	authRepo           repositories.AuthRepo          = repositories.NewAuthRepo(db)
 	authService        services.AuthService           = services.NewAuthService(authRepo)
 	authController     controllers.AuthController     = controllers.NewAuthController(authService, jwtService)
@@ -76,7 +78,11 @@ func main() {
 		owRoutes.GET("/get_for_member", owController.GetForMember)
 		owRoutes.POST("/add_member", owController.AddMember)
 		owRoutes.PUT("/confirm_invitation", owController.ConfirmInvitation)
+	}
 
+	notifRoutes := r.Group("/v1/notif", middlewares.AuthorizeJWT(jwtService))
+	{
+		notifRoutes.GET("/get_all_notif", notifController.GetAllNotif)
 	}
 
 	r.Run()
