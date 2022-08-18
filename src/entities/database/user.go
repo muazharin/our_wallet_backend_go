@@ -12,9 +12,9 @@ type Users struct {
 	UserPhone     string    `gorm:"type:varchar(100)" json:"user_phone"`
 	UserPhoto     string    `gorm:"type:varchar(100)" json:"user_photo"`
 	UserGender    string    `gorm:"type:varchar(6)" json:"user_gender"`
-	UserTglLahir  time.Time `json:"user_tgl_lahir"`
+	UserTglLahir  time.Time `gorm:"not null" json:"user_tgl_lahir"`
 	UserAddress   string    `gorm:"type:text" json:"user_address"`
 	UserStatus    string    `gorm:"type:text" json:"user_status"`
-	UserCreatedAt time.Time `json:"user_created_at"`
-	UserUpdatedAt time.Time `json:"user_updated_at"`
+	UserCreatedAt time.Time `gorm:"not null" json:"user_created_at"`
+	UserUpdatedAt time.Time `gorm:"not null" json:"user_updated_at"`
 }
