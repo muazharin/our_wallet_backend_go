@@ -39,7 +39,7 @@ func (db *categoryRepo) AddCategory(category database.Category) error {
 		return err
 	}
 	err := db.connection.Save(&category)
-	if err != nil {
+	if err.Error != nil {
 		err.Error = fmt.Errorf("gagal menambah kategori")
 		return err.Error
 	}

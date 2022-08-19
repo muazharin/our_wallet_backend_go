@@ -47,8 +47,9 @@ func (c *categoryController) AddCategory(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
-			"message": err,
+			"message": err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":  true,
@@ -71,7 +72,7 @@ func (c *categoryController) GetAllCategory(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
-			"message": err,
+			"message": err.Error(),
 		})
 	}
 

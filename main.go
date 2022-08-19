@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -34,6 +35,9 @@ var (
 	owRepo             repositories.OWRepo            = repositories.NewOWRepo(db)
 	owService          services.OWService             = services.NewOWService(owRepo, notifRepo)
 	owController       controllers.OWController       = controllers.NewOWController(owService, jwtService)
+	transRepo          repositories.TransRepo         = repositories.NewTransRepo(db)
+	transService       services.TransService          = services.NewTransService(transRepo)
+	transController    controllers.TransController    = controllers.NewTransactionController(transService, jwtService)
 )
 
 func setupLogOutput() {
@@ -44,6 +48,7 @@ func setupLogOutput() {
 func main() {
 	setupLogOutput()
 	r := gin.New()
+	r.StaticFS("/images", http.Dir("./src/images"))
 	r.Use(gin.Recovery(), middlewares.Logger(), middlewares.CORSMiddleware(), middlewares.APIKey())
 
 	authRoutes := r.Group("/v1/auth")
@@ -84,6 +89,11 @@ func main() {
 	{
 		notifRoutes.GET("/get_all_notif", notifController.GetAllNotif)
 		notifRoutes.PUT("/is_read_notif", notifController.IsReadNotif)
+	}
+
+	transRoutes := r.Group("/v1/trans", middlewares.AuthorizeJWT(jwtService))
+	{
+		transRoutes.POST("/create_trans", transController.CreateTransaction)
 	}
 
 	r.Run()
