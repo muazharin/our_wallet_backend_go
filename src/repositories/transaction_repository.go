@@ -41,16 +41,17 @@ func (db *transRepo) CreateTransaction(transCreateReq request.TransCreateReq, us
 		res.Error = fmt.Errorf("gagal menyimpan transaksi")
 		return nil, res.Error
 	}
+
 	for i, v := range transCreateReq.TransFile {
 		trFile.TfID = time.Now().Unix() + int64(i)
 		trFile.TfTransactionID = transaction.TransactionID
 		trFile.TfFile = fmt.Sprintf("%v%v.%v", time.Now().Unix(), i, strings.Split(v.Filename, ".")[1])
 		trFiles = append(trFiles, trFile)
-	}
-	res = db.connection.Create(&trFiles)
-	if res.Error != nil {
-		res.Error = fmt.Errorf("gagal menyimpan file transaksi")
-		return nil, res.Error
+		res = db.connection.Save(&trFile)
+		if res.Error != nil {
+			res.Error = fmt.Errorf("gagal menyimpan file transaksi")
+			return nil, res.Error
+		}
 	}
 	return trFiles, nil
 }

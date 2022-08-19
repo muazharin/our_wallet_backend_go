@@ -38,7 +38,7 @@ func (c *transController) CreateTransaction(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
-			"message": err.Error(),
+			"message": "Lengkapi form dengan baik dan benar",
 		})
 		return
 	}
@@ -64,12 +64,10 @@ func (c *transController) CreateTransaction(ctx *gin.Context) {
 		})
 		return
 	}
-	fmt.Println(len(transCreateReq.TransFile))
+
+	// menyimpan gambar
 	for i, v := range transCreateReq.TransFile {
 		path := fmt.Sprintf("src/images/trFiles/%s", res[i].TfFile)
-		fmt.Println(i)
-		fmt.Println(res[i].TfFile)
-		fmt.Println(path)
 		if err := ctx.SaveUploadedFile(v, path); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"status":  false,
