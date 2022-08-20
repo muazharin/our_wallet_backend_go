@@ -14,6 +14,7 @@ import (
 
 type UserController interface {
 	CreatePassword(ctx *gin.Context)
+	GetUserProfile(ctx *gin.Context)
 }
 
 type userController struct {
@@ -53,6 +54,26 @@ func (c *userController) CreatePassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{
 		"status":  true,
 		"message": "Password berhasil dibuat",
+	})
+}
+
+func (c *userController) GetUserProfile(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	authHeader = strings.Split(authHeader, "Bearer ")[1]
+	userID := c.getUserIDByToken(authHeader)
+	convertedUserID, _ := strconv.ParseInt(userID, 10, 64)
+	res, err := c.userService.GetUserProfile(convertedUserID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Data berhasil ditampilkan",
+		"data":    &res,
 	})
 }
 

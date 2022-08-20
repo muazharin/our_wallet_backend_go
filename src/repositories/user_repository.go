@@ -13,6 +13,7 @@ import (
 type UserRepo interface {
 	CheckUserByID(userId int64) (int64, error)
 	CreatePassword(userCreatePasswordRequest request.UserCreatePasswordRequest, userId int64) error
+	GetUserProfile(userId int64) (database.Users, error)
 }
 
 type userConnection struct {
@@ -28,7 +29,6 @@ func NewUserRepo(connection *gorm.DB) UserRepo {
 func (db *userConnection) CheckUserByID(userId int64) (int64, error) {
 	var count int64
 	var user database.Users
-	fmt.Println(userId)
 	db.connection.Where("user_id = ?", &userId).First(&user).Count(&count)
 
 	return count, nil
@@ -48,6 +48,16 @@ func (db *userConnection) CreatePassword(userCreatePasswordRequest request.UserC
 		return err.Error
 	}
 	return nil
+}
+
+func (db *userConnection) GetUserProfile(userId int64) (database.Users, error) {
+	var user database.Users
+	res := db.connection.Where("user_id = ?", &userId).First(&user)
+	if res.Error != nil {
+		return database.Users{}, res.Error
+	}
+	return user, nil
+
 }
 
 func hashAndSalt(pwd []byte) string {
