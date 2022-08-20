@@ -1,14 +1,18 @@
 package repositories
 
 import (
+	"fmt"
+
 	"github.com/muazharin/our_wallet_backend_go/src/entities/database"
 	"gorm.io/gorm"
 )
 
 type WalletRepo interface {
 	GetAllWallet(userId int64, page int64) ([]database.Wallets, error)
+	GetWalletById(walletId int64) (database.Wallets, error)
 	GetInvitationWallet(userId int64, page int64) ([]database.Wallets, error)
 	CreateWallet(wallet database.Wallets, our_wallet database.OurWallet) error
+	UpdateWallet(wallet database.Wallets, userId int64, isAdmin bool) error
 }
 
 type walletConnection struct {
@@ -31,6 +35,17 @@ func (db *walletConnection) GetAllWallet(userId int64, page int64) ([]database.W
 	if err.Error != nil {
 		return nil, err.Error
 	}
+	return wallet, nil
+}
+
+func (db *walletConnection) GetWalletById(walletId int64) (database.Wallets, error) {
+	var wallet database.Wallets
+	res := db.connection.Model(&database.Wallets{}).Where("wallet_id = ?", walletId).First(&wallet)
+
+	if res.Error != nil {
+		return database.Wallets{}, res.Error
+	}
+
 	return wallet, nil
 }
 
@@ -57,4 +72,27 @@ func (db *walletConnection) CreateWallet(wallet database.Wallets, our_wallet dat
 		return err.Error
 	}
 	return nil
+}
+
+func (db *walletConnection) UpdateWallet(wallet database.Wallets, userId int64, isAdmin bool) error {
+	var ow database.OurWallet
+	res := db.connection.Where(&database.OurWallet{
+		OwWalletID:     wallet.WalletID,
+		OwUserID:       userId,
+		OwIsAdmin:      isAdmin,
+		OwIsUserActive: 1,
+	}).First(&ow)
+
+	if res.Error != nil {
+		res.Error = fmt.Errorf("anda tidak memiliki hak akses")
+		return res.Error
+	}
+
+	res = db.connection.Save(&wallet)
+	if res.Error != nil {
+		res.Error = fmt.Errorf("gagal mengupdate wallet")
+		return res.Error
+	}
+	return nil
+
 }

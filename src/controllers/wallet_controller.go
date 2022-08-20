@@ -16,6 +16,7 @@ type WalletController interface {
 	GetAllWallet(ctx *gin.Context)
 	GetInvitationWallet(ctx *gin.Context)
 	CreateWallet(ctx *gin.Context)
+	UpdateWallet(ctx *gin.Context)
 }
 
 type walletController struct {
@@ -55,6 +56,34 @@ func (c *walletController) CreateWallet(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{
 		"status":  true,
 		"message": "Wallet berhasil dibuat",
+	})
+}
+
+func (c *walletController) UpdateWallet(ctx *gin.Context) {
+	var updatewallet request.WalletUpdateReq
+	err := ctx.ShouldBind(&updatewallet)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	authHeader := ctx.GetHeader("Authorization")
+	authHeader = strings.Split(authHeader, "Bearer ")[1]
+	userID := c.getUserIDByToken(authHeader)
+	convertedUserID, _ := strconv.ParseInt(userID, 10, 64)
+	err = c.walletService.UpdateWallet(updatewallet, convertedUserID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Wallet berhasil diupdate",
 	})
 }
 
