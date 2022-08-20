@@ -7,5 +7,6 @@ type TransByUserIdRes struct {
 	TransDetail   string      `json:"trans_detail"`
 	TransPrice    int64       `json:"trans_price"`
 	TransDate     string      `json:"trans_date"`
+	TransIsSeen   bool        `json:"trans_is_seen"`
 	TransWallet   TransWallet `json:"trans_wallet"`
 }

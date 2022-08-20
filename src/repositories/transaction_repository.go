@@ -15,6 +15,8 @@ type TransRepo interface {
 	GetAllTransByWalletId(transWalletId request.TransByWalletIdReq) ([]database.Transaction, error)
 	GetAllTransByUserId(transUserId request.TransByUserIdReq) ([]database.Transaction, error)
 	GetTransById(transId request.TransByIdReq) (database.Transaction, error)
+	CheckIsSeen(transId int64, userId int64) (bool, error)
+	SetIsSeen(transIsSeen database.TransactionIsSeen) error
 }
 
 type transRepo struct {
@@ -25,6 +27,29 @@ func NewTransRepo(connection *gorm.DB) TransRepo {
 	return &transRepo{
 		connection: connection,
 	}
+}
+
+func (db *transRepo) CheckIsSeen(transId int64, userId int64) (bool, error) {
+	var transIsSeen database.TransactionIsSeen
+	res := db.connection.Where(&database.TransactionIsSeen{
+		TransactionID:     transId,
+		TransactionUserID: userId,
+	}).First(&transIsSeen)
+
+	if res.Error != nil {
+		return false, res.Error
+	}
+
+	return true, nil
+}
+
+func (db *transRepo) SetIsSeen(transIsSeen database.TransactionIsSeen) error {
+	res := db.connection.Save(&transIsSeen)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	return nil
 }
 
 func (db *transRepo) SaveFileTrans(trFile database.TransactionFile) error {

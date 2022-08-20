@@ -86,18 +86,21 @@ func (s *transService) GetAllTransByWalletId(transWalletId request.TransByWallet
 	for _, v := range res {
 		users, _ := s.userRepo.GetUserProfile(v.TransactionUserID)
 		category, _ := s.categoryRepo.GetCategoryById(v.TransactionCategory)
+		isSeen, _ := s.transRepo.CheckIsSeen(v.TransactionID, v.TransactionUserID)
 		transByWalletIdRes.TransID = v.TransactionID
 		transByWalletIdRes.TransType = v.TransactionType
 		transByWalletIdRes.TransCategory = category.CategoryTitle
 		transByWalletIdRes.TransDetail = v.TransactionDetail
 		transByWalletIdRes.TransPrice = v.TransactionPrice
 		transByWalletIdRes.TransDate = v.TransactionDate.Format("2006-01-02 15:04:05")
+		transByWalletIdRes.TransIsSeen = isSeen
 		transByWalletIdRes.TransUser.TransUserID = users.UserID
 		transByWalletIdRes.TransUser.TransUserName = users.UserName
 		transByWalletIdRes.TransUser.TransUserEmail = users.UserEmail
 		transByWalletIdRes.TransUser.TransUserPhone = users.UserPhone
 		transByWalletIdRes.TransUser.TransUserPhoto = users.UserPhoto
 		transByWalletIdRess = append(transByWalletIdRess, transByWalletIdRes)
+
 	}
 	return transByWalletIdRess, nil
 }
@@ -113,12 +116,14 @@ func (s *transService) GetAllTransByUserId(transUserId request.TransByUserIdReq)
 	for _, v := range res {
 		wallet, _ := s.walletRepo.GetWalletById(v.TransactionWalletID)
 		category, _ := s.categoryRepo.GetCategoryById(v.TransactionCategory)
+		isSeen, _ := s.transRepo.CheckIsSeen(v.TransactionID, v.TransactionUserID)
 		transByUserIdRes.TransID = v.TransactionID
 		transByUserIdRes.TransType = v.TransactionType
 		transByUserIdRes.TransCategory = category.CategoryTitle
 		transByUserIdRes.TransDetail = v.TransactionDetail
 		transByUserIdRes.TransPrice = v.TransactionPrice
 		transByUserIdRes.TransDate = v.TransactionDate.Format("2006-01-02 15:04:05")
+		transByUserIdRes.TransIsSeen = isSeen
 		transByUserIdRes.TransWallet.TransWalletID = wallet.WalletID
 		transByUserIdRes.TransWallet.TransWalletName = wallet.WalletName
 		transByUserIdRes.TransWallet.TransWalletColor = wallet.WalletColor
@@ -129,11 +134,18 @@ func (s *transService) GetAllTransByUserId(transUserId request.TransByUserIdReq)
 
 func (s *transService) GetTransById(transId request.TransByIdReq) (response.TransByIdRes, error) {
 	var transByIdRes response.TransByIdRes
+	var transIsSeen database.TransactionIsSeen
 	res, err := s.transRepo.GetTransById(transId)
 	if err != nil {
 		return response.TransByIdRes{}, err
 	}
-
+	isSeen, _ := s.transRepo.CheckIsSeen(res.TransactionID, res.TransactionUserID)
+	if !isSeen {
+		transIsSeen.TransactionIsSeenID = time.Now().Unix()
+		transIsSeen.TransactionID = res.TransactionID
+		transIsSeen.TransactionUserID = res.TransactionUserID
+		s.transRepo.SetIsSeen(transIsSeen)
+	}
 	users, _ := s.userRepo.GetUserProfile(res.TransactionUserID)
 	wallet, _ := s.walletRepo.GetWalletById(res.TransactionWalletID)
 	category, _ := s.categoryRepo.GetCategoryById(res.TransactionCategory)
@@ -145,6 +157,7 @@ func (s *transService) GetTransById(transId request.TransByIdReq) (response.Tran
 	transByIdRes.TransDetail = res.TransactionDetail
 	transByIdRes.TransPrice = res.TransactionPrice
 	transByIdRes.TransDate = res.TransactionDate.Format("2006-01-02 15:04:05")
+	transByIdRes.TransIsSeen = true
 	transByIdRes.TransUser.TransUserID = users.UserID
 	transByIdRes.TransUser.TransUserName = users.UserName
 	transByIdRes.TransUser.TransUserEmail = users.UserEmail
