@@ -14,6 +14,9 @@ import (
 
 type TransController interface {
 	CreateTransaction(ctx *gin.Context)
+	GetAllTransByWalletId(ctx *gin.Context)
+	GetAllTransByUserId(ctx *gin.Context)
+	GetTransById(ctx *gin.Context)
 }
 
 type transController struct {
@@ -77,9 +80,111 @@ func (c *transController) CreateTransaction(ctx *gin.Context) {
 		}
 	}
 
+	ctx.JSON(http.StatusCreated, gin.H{
+		"status":  true,
+		"message": "Berhasil melakukan transaksi",
+	})
+}
+
+func (c *transController) GetAllTransByWalletId(ctx *gin.Context) {
+	var transWallet request.TransByWalletIdReq
+	transWallet.TransWalletId, _ = strconv.ParseInt(ctx.Request.URL.Query().Get("wallet_id"), 10, 64)
+	transWallet.Page, _ = strconv.ParseInt(ctx.Request.URL.Query().Get("page"), 10, 64)
+	err := ctx.ShouldBind(&transWallet)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	res, err := c.transService.GetAllTransByWalletId(transWallet)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	if res == nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status":  true,
+			"message": "Data berhasil ditampilkan",
+			"data":    []string{},
+		})
+		return
+	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":  true,
-		"message": "Berhasil",
+		"message": "Data berhasil ditampilkan",
+		"data":    &res,
+	})
+}
+
+func (c *transController) GetAllTransByUserId(ctx *gin.Context) {
+	var transUser request.TransByUserIdReq
+	authHeader := ctx.GetHeader("Authorization")
+	authHeader = strings.Split(authHeader, "Bearer ")[1]
+	userID := c.getUserIDByToken(authHeader)
+	transUser.TransUserId, _ = strconv.ParseInt(userID, 10, 64)
+	transUser.Page, _ = strconv.ParseInt(ctx.Request.URL.Query().Get("page"), 10, 64)
+	err := ctx.ShouldBind(&transUser)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	res, err := c.transService.GetAllTransByUserId(transUser)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	if res == nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"status":  true,
+			"message": "Data berhasil ditampilkan",
+			"data":    []string{},
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Data berhasil ditampilkan",
+		"data":    &res,
+	})
+}
+
+func (c *transController) GetTransById(ctx *gin.Context) {
+	var trans request.TransByIdReq
+	trans.TransId, _ = strconv.ParseInt(ctx.Request.URL.Query().Get("trans_id"), 10, 64)
+	err := ctx.ShouldBind(&trans)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	res, err := c.transService.GetTransById(trans)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Data berhasil ditampilkan",
+		"data":    &res,
 	})
 }
 
