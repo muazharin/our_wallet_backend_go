@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,8 +17,6 @@ func APIKey() gin.HandlerFunc {
 	apiKey := os.Getenv("X_API_KEY")
 	return func(ctx *gin.Context) {
 		RequestHeaderName := ctx.Request.Header.Get("x-api-key")
-		fmt.Println("ctx.Request.Header.Get x-api-key:", RequestHeaderName)
-		fmt.Println("ctx.GetHeader", ctx.GetHeader("x-api-key"))
 		if RequestHeaderName != apiKey {
 			ctx.JSON(http.StatusForbidden, gin.H{
 				"status":  false,

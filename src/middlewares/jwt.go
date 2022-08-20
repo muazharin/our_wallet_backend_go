@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -22,13 +21,11 @@ func AuthorizeJWT(jwtService services.JWTService) gin.HandlerFunc {
 			return
 		}
 		authHeader = strings.Split(authHeader, "Bearer ")[1]
-		token, err := jwtService.ValidateToken(authHeader)
+		token, _ := jwtService.ValidateToken(authHeader)
 		if token.Valid {
 			claims := token.Claims.(jwt.MapClaims)
 			log.Println("Claim[user_id]: ", claims["user_id"])
 		} else {
-			fmt.Println(token)
-			fmt.Println(err.Error())
 			ctx.JSON(http.StatusNotFound, gin.H{
 				"status":  false,
 				"message": "Token is not valid",
