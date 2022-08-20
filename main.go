@@ -36,7 +36,7 @@ var (
 	owService          services.OWService             = services.NewOWService(owRepo, notifRepo)
 	owController       controllers.OWController       = controllers.NewOWController(owService, jwtService)
 	transRepo          repositories.TransRepo         = repositories.NewTransRepo(db)
-	transService       services.TransService          = services.NewTransService(transRepo)
+	transService       services.TransService          = services.NewTransService(transRepo, categoryRepo, userRepo, walletRepo)
 	transController    controllers.TransController    = controllers.NewTransactionController(transService, jwtService)
 )
 
@@ -67,12 +67,15 @@ func main() {
 	catergoryRoutes := r.Group("/v1/category", middlewares.AuthorizeJWT(jwtService))
 	{
 		catergoryRoutes.POST("/add_category", categoryController.AddCategory)
+		catergoryRoutes.PUT("/update_category", categoryController.UpdateCategory)
+		catergoryRoutes.PUT("/delete_category", categoryController.DeleteCategory)
 		catergoryRoutes.GET("/get_all_category", categoryController.GetAllCategory)
 	}
 
 	walletRoutes := r.Group("/v1/wallet", middlewares.AuthorizeJWT(jwtService))
 	{
 		walletRoutes.POST("/create_wallet", walletController.CreateWallet)
+		walletRoutes.PUT("/update_wallet", walletController.UpdateWallet)
 		walletRoutes.GET("/get_all_wallet", walletController.GetAllWallet)
 		walletRoutes.GET("/get_invitation_wallet", walletController.GetInvitationWallet)
 	}
@@ -94,6 +97,9 @@ func main() {
 	transRoutes := r.Group("/v1/trans", middlewares.AuthorizeJWT(jwtService))
 	{
 		transRoutes.POST("/create_trans", transController.CreateTransaction)
+		transRoutes.GET("/get_all_by_wallet_id", transController.GetAllTransByWalletId)
+		transRoutes.GET("/get_all_by_user_id", transController.GetAllTransByUserId)
+		transRoutes.GET("/get_detail_by_id", transController.GetTransById)
 	}
 
 	r.Run()
