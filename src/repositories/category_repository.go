@@ -10,9 +10,12 @@ import (
 )
 
 type CategoryRepo interface {
-	CheckCategory(title string) (int64, error)
+	CheckCategory(title string, walletId int64) (int64, database.Category, error)
 	AddCategory(category database.Category) error
+	UpdateCategory(category database.Category) error
+	DeleteCategory(category database.Category) error
 	GetAllCategory(categoryGetAllRequest request.CategoryGetAllRequest) ([]database.Category, error)
+	GetCategoryById(categoryId int64) (database.Category, error)
 }
 
 type categoryRepo struct {
@@ -25,16 +28,40 @@ func NewCategoryRepo(connection *gorm.DB) CategoryRepo {
 	}
 }
 
-func (db *categoryRepo) CheckCategory(title string) (int64, error) {
+func (db *categoryRepo) CheckCategory(title string, walletId int64) (int64, database.Category, error) {
 	var count int64
 	var category database.Category
-	db.connection.Where("category_title = ?", &title).First(&category).Count(&count)
-	return count, nil
+	db.connection.Where(&database.Category{
+		CategoryTitle:    title,
+		CategoryWalletID: walletId,
+	}).First(&category).Count(&count)
+	return count, category, nil
+}
+
+func (db *categoryRepo) GetCategoryById(categoryId int64) (database.Category, error) {
+	var category database.Category
+	res := db.connection.Model(&database.Category{}).
+		Where("category_id = ?", categoryId).
+		First(&category)
+
+	if res.Error != nil {
+		return database.Category{}, res.Error
+	}
+
+	return category, nil
 }
 
 func (db *categoryRepo) AddCategory(category database.Category) error {
-	count, _ := db.CheckCategory(category.CategoryTitle)
+	count, res, _ := db.CheckCategory(category.CategoryTitle, category.CategoryWalletID)
 	if count > 0 {
+		if !res.CategoryIsActive {
+			res.CategoryIsActive = true
+			err := db.connection.Save(res)
+			if err.Error != nil {
+				return err.Error
+			}
+			return nil
+		}
 		err := fmt.Errorf("kategori sudah ada")
 		return err
 	}
@@ -46,13 +73,37 @@ func (db *categoryRepo) AddCategory(category database.Category) error {
 	return nil
 }
 
+func (db *categoryRepo) UpdateCategory(category database.Category) error {
+	count, _, _ := db.CheckCategory(category.CategoryTitle, category.CategoryWalletID)
+	if count > 0 {
+		err := fmt.Errorf("kategori sudah ada")
+		return err
+	}
+
+	res := db.connection.Save(&category)
+	if res.Error != nil {
+		res.Error = fmt.Errorf("gagal mengupdate kategori")
+		return res.Error
+	}
+	return nil
+}
+
+func (db *categoryRepo) DeleteCategory(category database.Category) error {
+	res := db.connection.Save(&category)
+	if res.Error != nil {
+		res.Error = fmt.Errorf("gagal mengupdate kategori")
+		return res.Error
+	}
+	return nil
+}
+
 func (db *categoryRepo) GetAllCategory(categoryGetAllRequest request.CategoryGetAllRequest) ([]database.Category, error) {
 	var category []database.Category
-	userId, _ := strconv.ParseInt(categoryGetAllRequest.CategoryUserId, 10, 64)
 	walletId, _ := strconv.ParseInt(categoryGetAllRequest.CategoryWalletId, 10, 64)
 	err := db.connection.Where(database.Category{
-		CategoryUserID:   userId,
 		CategoryWalletID: walletId,
+		CategoryType:     categoryGetAllRequest.CategoryType,
+		CategoryIsActive: true,
 	}).Offset((int(categoryGetAllRequest.CategoryPage) - 1) * 10).Limit(10).Find(&category)
 
 	if err.Error != nil {
