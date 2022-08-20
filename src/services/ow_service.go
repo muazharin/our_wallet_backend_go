@@ -116,8 +116,6 @@ func (s *owService) ConfirmInvitation(confirmInvitation request.OwConfirmInvitat
 		return err
 	}
 
-	fmt.Println("owService : ", ow.OwInviterID)
-
 	// mengirim notifikasi
 	notif.NotificationID = time.Now().Unix()
 	notif.NotificationPusherID = userId

@@ -45,10 +45,8 @@ func (db *authConnection) SignIn(authSignInRequest request.AuthSignInRequest) (d
 	var user database.Users
 	res := db.connection.Where("user_name = ?", authSignInRequest.UserName).Or("user_email = ?", authSignInRequest.UserName).Or("user_phone = ?", authSignInRequest.UserName).First(&user)
 	if res.Error != nil {
-		fmt.Println(res.Error)
 		res.Error = fmt.Errorf("user tidak ditemukan")
 		return user, res.Error
 	}
-	fmt.Println(user)
 	return user, nil
 }

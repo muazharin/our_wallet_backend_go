@@ -60,7 +60,6 @@ func (db *owConnection) GetForMember(owGetUserReq request.OwGetUserReq) ([]datab
 	for _, v := range res {
 		listId = append(listId, v.UserID)
 	}
-	fmt.Println(res)
 	keyword := fmt.Sprintf("%v", owGetUserReq.Keyword)
 	var err *gorm.DB
 	if owGetUserReq.Keyword != "" {
@@ -109,7 +108,6 @@ func (db *owConnection) ConfirmInvitation(confirmInvitation request.OwConfirmInv
 	if err.Error != nil {
 		return owWallet, err.Error
 	}
-	fmt.Println("owRepo", owWallet.OwInviterID)
 	if confirmInvitation.ConfirmReply {
 		owWallet.OwIsUserActive = 1
 		owWallet.OwDate = time.Now()

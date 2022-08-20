@@ -94,7 +94,6 @@ func (s *authService) SignIn(authSignInRequest request.AuthSignInRequest) (respo
 	authSignUpResponse := response.AuthSignUpResponse{}
 	res, err := s.authRepo.SignIn(authSignInRequest)
 	if err != nil {
-		fmt.Println("1")
 		return authSignUpResponse, err
 	}
 	compared, err := comparePassword(res.UserPassword, []byte(authSignInRequest.UserPassword))
@@ -127,7 +126,6 @@ func comparePassword(hashedPwd string, plainPassword []byte) (bool, error) {
 	byteHash := []byte(hashedPwd)
 	err := bcrypt.CompareHashAndPassword(byteHash, plainPassword)
 	if err != nil {
-		fmt.Println(err)
 		return false, err
 	}
 	return true, nil
