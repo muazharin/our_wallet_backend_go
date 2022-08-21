@@ -61,6 +61,8 @@ func main() {
 	userRoutes := r.Group("/v1/user", middlewares.AuthorizeJWT(jwtService))
 	{
 		userRoutes.PUT("/create_password", userController.CreatePassword)
+		userRoutes.PUT("/update_photo", userController.UpdatePhoto)
+		userRoutes.GET("/get_user_profile", userController.GetUserProfile)
 
 	}
 
@@ -85,6 +87,7 @@ func main() {
 		owRoutes.GET("/get_ow_user", owController.GetOwUser)
 		owRoutes.GET("/get_for_member", owController.GetForMember)
 		owRoutes.POST("/add_member", owController.AddMember)
+		owRoutes.PUT("/remove_member", owController.RemoveMember)
 		owRoutes.PUT("/confirm_invitation", owController.ConfirmInvitation)
 	}
 
