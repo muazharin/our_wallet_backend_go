@@ -15,6 +15,7 @@ import (
 type UserController interface {
 	CreatePassword(ctx *gin.Context)
 	GetUserProfile(ctx *gin.Context)
+	UpdatePhoto(ctx *gin.Context)
 }
 
 type userController struct {
@@ -74,6 +75,55 @@ func (c *userController) GetUserProfile(ctx *gin.Context) {
 		"status":  true,
 		"message": "Data berhasil ditampilkan",
 		"data":    &res,
+	})
+}
+
+func (c *userController) UpdatePhoto(ctx *gin.Context) {
+	var userPhotoReq request.UserPhotoReq
+	authHeader := ctx.GetHeader("Authorization")
+	authHeader = strings.Split(authHeader, "Bearer ")[1]
+	userID := c.getUserIDByToken(authHeader)
+	userPhotoReq.UserId, _ = strconv.ParseInt(userID, 10, 64)
+	err := ctx.ShouldBind(&userPhotoReq)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err,
+		})
+	}
+	switch userPhotoReq.UserPhoto.Header["Content-Type"][0] {
+	case "image/png":
+	case "image/jpg":
+	case "image/jpeg":
+	default:
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "File tidak sesuai",
+		})
+		return
+	}
+
+	res, err := c.userService.UpdatePhoto(userPhotoReq)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	path := fmt.Sprintf("src/images/profiles/%s", res.UserPhoto)
+	if err := ctx.SaveUploadedFile(userPhotoReq.UserPhoto, path); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "Gagal upload foto :" + err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, gin.H{
+		"status":  true,
+		"message": "Berhasil mengubah foto profile",
 	})
 }
 

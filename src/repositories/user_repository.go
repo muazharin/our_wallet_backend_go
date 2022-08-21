@@ -14,6 +14,7 @@ type UserRepo interface {
 	CheckUserByID(userId int64) (int64, error)
 	CreatePassword(userCreatePasswordRequest request.UserCreatePasswordRequest, userId int64) error
 	GetUserProfile(userId int64) (database.Users, error)
+	UpdatePhoto(user database.Users) (database.Users, error)
 }
 
 type userConnection struct {
@@ -58,6 +59,14 @@ func (db *userConnection) GetUserProfile(userId int64) (database.Users, error) {
 	}
 	return user, nil
 
+}
+
+func (db *userConnection) UpdatePhoto(user database.Users) (database.Users, error) {
+	res := db.connection.Save(&user)
+	if res.Error != nil {
+		return database.Users{}, res.Error
+	}
+	return user, nil
 }
 
 func hashAndSalt(pwd []byte) string {
