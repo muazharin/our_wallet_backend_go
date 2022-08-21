@@ -14,6 +14,7 @@ type OWService interface {
 	GetOwUser(owGetUserReq request.OwGetUserReq) ([]response.GetOwUserRes, error)
 	GetForMember(owGetUserReq request.OwGetUserReq) ([]response.GetOwUserRes, error)
 	AddMember(owAddMemberReq request.OwAddMemberReq, userId int64) error
+	RemoveMember(owAddMemberReq request.OwAddMemberReq, userId int64) error
 	ConfirmInvitation(confirmInvitation request.OwConfirmInvitation, userId int64) error
 }
 
@@ -32,7 +33,7 @@ func NewOWService(owRepo repositories.OWRepo, notifRepo repositories.NotifRepo) 
 func (s *owService) GetOwUser(owGetUserReq request.OwGetUserReq) ([]response.GetOwUserRes, error) {
 	var getOwUserRes response.GetOwUserRes
 	var getOwUserRess []response.GetOwUserRes
-	res, err := s.owRepo.GetOwUser(owGetUserReq, false)
+	res, err := s.owRepo.GetOwUser(owGetUserReq)
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +103,31 @@ func (s *owService) AddMember(owAddMemberReq request.OwAddMemberReq, userId int6
 	notif.NotificationPusherID = userId
 	notif.NotificationReceiverID = owAddMemberReq.OwMemberId
 	notif.NotificationMessage = "Anda memiliki 1 undangan menjadi anggota wallet"
+	notif.NotificationRoute = "/"
+	notif.NotificationIsRead = false
+	s.notifRepo.SendNotif(notif)
+	return nil
+}
+
+func (s *owService) RemoveMember(owAddMemberReq request.OwAddMemberReq, userId int64) error {
+	var notif database.Notification
+	// mengecek admin
+	count, err := s.owRepo.CheckMember(owAddMemberReq, userId)
+	if err != nil || count == 0 {
+		err = fmt.Errorf("anda tidak memiliki hak akses")
+		return err
+	}
+	// mengeluarkan user
+	res, err := s.owRepo.RemoveMember(owAddMemberReq)
+	if err != nil {
+		return err
+	}
+
+	// mengirim notifikasi kepada calon member
+	notif.NotificationID = time.Now().Unix()
+	notif.NotificationPusherID = userId
+	notif.NotificationReceiverID = owAddMemberReq.OwMemberId
+	notif.NotificationMessage = fmt.Sprintf("Anda telah dikeluarkan dari wallet %v", res)
 	notif.NotificationRoute = "/"
 	notif.NotificationIsRead = false
 	s.notifRepo.SendNotif(notif)

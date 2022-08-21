@@ -16,6 +16,7 @@ type OWController interface {
 	GetOwUser(ctx *gin.Context)
 	GetForMember(ctx *gin.Context)
 	AddMember(ctx *gin.Context)
+	RemoveMember(ctx *gin.Context)
 	ConfirmInvitation(ctx *gin.Context)
 }
 
@@ -129,6 +130,35 @@ func (c *owController) AddMember(ctx *gin.Context) {
 		"message": "User berhasil ditambahkan",
 	})
 }
+
+func (c *owController) RemoveMember(ctx *gin.Context) {
+	var owAddMemberReq request.OwAddMemberReq
+	authHeader := ctx.GetHeader("Authorization")
+	authHeader = strings.Split(authHeader, "Bearer ")[1]
+	userID := c.getUserIDByToken(authHeader)
+	convertedUserID, _ := strconv.ParseInt(userID, 10, 64)
+	err := ctx.ShouldBind(&owAddMemberReq)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	err = c.owService.RemoveMember(owAddMemberReq, convertedUserID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "User berhasil dihapus",
+	})
+}
+
 func (c *owController) ConfirmInvitation(ctx *gin.Context) {
 	var confirmInvitation request.OwConfirmInvitation
 	authHeader := ctx.GetHeader("Authorization")
