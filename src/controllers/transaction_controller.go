@@ -50,6 +50,7 @@ func (c *transController) CreateTransaction(ctx *gin.Context) {
 		switch v.Header["Content-Type"][0] {
 		case "image/png":
 		case "image/jpg":
+		case "image/jpeg":
 		default:
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"status":  false,

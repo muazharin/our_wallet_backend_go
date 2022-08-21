@@ -100,11 +100,12 @@ func (db *categoryRepo) DeleteCategory(category database.Category) error {
 func (db *categoryRepo) GetAllCategory(categoryGetAllRequest request.CategoryGetAllRequest) ([]database.Category, error) {
 	var category []database.Category
 	walletId, _ := strconv.ParseInt(categoryGetAllRequest.CategoryWalletId, 10, 64)
-	err := db.connection.Where(database.Category{
-		CategoryWalletID: walletId,
-		CategoryType:     categoryGetAllRequest.CategoryType,
-		CategoryIsActive: true,
-	}).Offset((int(categoryGetAllRequest.CategoryPage) - 1) * 10).Limit(10).Find(&category)
+	err := db.connection.Model(&database.Category{}).
+		Where(database.Category{
+			CategoryWalletID: walletId,
+			CategoryType:     categoryGetAllRequest.CategoryType,
+			CategoryIsActive: true,
+		}).Offset((int(categoryGetAllRequest.CategoryPage) - 1) * 10).Limit(10).Scan(&category)
 
 	if err.Error != nil {
 		err.Error = fmt.Errorf("gagal menemukan data")
