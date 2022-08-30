@@ -72,7 +72,7 @@ func (c *notifController) IsReadNotif(ctx *gin.Context) {
 	}
 	err = c.notifService.IsReadNotif(isReadNotifReq)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
 		})

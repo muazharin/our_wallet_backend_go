@@ -46,7 +46,10 @@ func (s *userService) GetUserProfile(userId int64) (response.UserProfileRes, err
 	userProfileRes.UserName = res.UserName
 	userProfileRes.UserEmail = res.UserEmail
 	userProfileRes.UserPhone = res.UserPhone
-	userProfileRes.UserPhoto = fmt.Sprintf("%v/images/profiles/%v", os.Getenv("BASE_URL"), res.UserPhoto)
+	userProfileRes.UserPhoto = res.UserPhoto
+	if res.UserPhoto != "" {
+		userProfileRes.UserPhoto = fmt.Sprintf("%v/images/profiles/%v", os.Getenv("BASE_URL"), res.UserPhoto)
+	}
 	userProfileRes.UserGender = res.UserGender
 	userProfileRes.UserTglLahir = res.UserTglLahir.Format("2006-01-02 15:04:05")
 	userProfileRes.UserAddress = res.UserAddress

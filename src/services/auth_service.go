@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/muazharin/our_wallet_backend_go/src/entities/database"
@@ -33,7 +34,7 @@ func (s *authService) CheckPhone(checkPhoneRequest request.AuthCheckPhoneRequest
 	if err != nil {
 		return count, response.AuthSignUpResponse{}, err
 	}
-	authSignUpResponse.UserID = time.Now().Unix()
+	authSignUpResponse.UserID = res.UserID
 	authSignUpResponse.UserName = res.UserName
 	authSignUpResponse.UserEmail = res.UserEmail
 	authSignUpResponse.UserPhone = res.UserPhone
@@ -109,6 +110,9 @@ func (s *authService) SignIn(authSignInRequest request.AuthSignInRequest) (respo
 		authSignUpResponse.UserEmail = res.UserEmail
 		authSignUpResponse.UserPhone = res.UserPhone
 		authSignUpResponse.UserPhoto = res.UserPhoto
+		if res.UserPhoto != "" {
+			authSignUpResponse.UserPhoto = fmt.Sprintf("%v/images/profiles/%v", os.Getenv("BASE_URL"), res.UserPhoto)
+		}
 		authSignUpResponse.UserGender = res.UserGender
 		authSignUpResponse.UserTglLahir = res.UserTglLahir.Format("2006-01-02")
 		authSignUpResponse.UserAddress = res.UserAddress

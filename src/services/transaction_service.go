@@ -99,6 +99,10 @@ func (s *transService) GetAllTransByWalletId(transWalletId request.TransByWallet
 		transByWalletIdRes.TransUser.TransUserEmail = users.UserEmail
 		transByWalletIdRes.TransUser.TransUserPhone = users.UserPhone
 		transByWalletIdRes.TransUser.TransUserPhoto = users.UserPhoto
+		if users.UserPhoto != "" {
+			transByWalletIdRes.TransUser.TransUserPhoto = fmt.Sprintf("%v/images/profiles/%v", os.Getenv("BASE_URL"), users.UserPhoto)
+
+		}
 		transByWalletIdRess = append(transByWalletIdRess, transByWalletIdRes)
 
 	}
@@ -163,6 +167,9 @@ func (s *transService) GetTransById(transId request.TransByIdReq) (response.Tran
 	transByIdRes.TransUser.TransUserEmail = users.UserEmail
 	transByIdRes.TransUser.TransUserPhone = users.UserPhone
 	transByIdRes.TransUser.TransUserPhoto = users.UserPhoto
+	if users.UserPhoto != "" {
+		transByIdRes.TransUser.TransUserPhoto = fmt.Sprintf("%v/images/profiles/%v", os.Getenv("BASE_URL"), users.UserPhoto)
+	}
 	transByIdRes.TransWallet.TransWalletID = wallet.WalletID
 	transByIdRes.TransWallet.TransWalletName = wallet.WalletName
 	transByIdRes.TransWallet.TransWalletColor = wallet.WalletColor

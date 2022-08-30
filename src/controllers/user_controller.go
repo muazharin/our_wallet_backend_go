@@ -34,7 +34,7 @@ func (c *userController) CreatePassword(ctx *gin.Context) {
 	userCreatePasswordRequest := request.UserCreatePasswordRequest{}
 	err := ctx.ShouldBind(&userCreatePasswordRequest)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
 		})
@@ -46,13 +46,13 @@ func (c *userController) CreatePassword(ctx *gin.Context) {
 	convertedUserID, _ := strconv.ParseInt(userID, 10, 64)
 	err = c.userService.CreatedPassword(userCreatePasswordRequest, convertedUserID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
 		})
 		return
 	}
-	ctx.JSON(http.StatusCreated, gin.H{
+	ctx.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "Password berhasil dibuat",
 	})
@@ -65,7 +65,7 @@ func (c *userController) GetUserProfile(ctx *gin.Context) {
 	convertedUserID, _ := strconv.ParseInt(userID, 10, 64)
 	res, err := c.userService.GetUserProfile(convertedUserID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
 		})

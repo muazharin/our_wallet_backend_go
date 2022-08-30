@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/muazharin/our_wallet_backend_go/src/entities/database"
@@ -43,6 +44,9 @@ func (s *owService) GetOwUser(owGetUserReq request.OwGetUserReq) ([]response.Get
 		getOwUserRes.UserEmail = v.UserEmail
 		getOwUserRes.UserPhone = v.UserPhone
 		getOwUserRes.UserPhoto = v.UserPhoto
+		if v.UserPhoto != "" {
+			getOwUserRes.UserPhoto = fmt.Sprintf("%v/images/profiles/%v", os.Getenv("BASE_URL"), v.UserPhoto)
+		}
 		getOwUserRes.UserGender = v.UserGender
 		getOwUserRes.UserTglLahir = v.UserTglLahir.Format("2006-01-02")
 		getOwUserRes.UserAddress = v.UserAddress
@@ -67,6 +71,9 @@ func (s *owService) GetForMember(owGetUserReq request.OwGetUserReq) ([]response.
 		getOwUserRes.UserEmail = v.UserEmail
 		getOwUserRes.UserPhone = v.UserPhone
 		getOwUserRes.UserPhoto = v.UserPhoto
+		if v.UserPhoto != "" {
+			getOwUserRes.UserPhoto = fmt.Sprintf("%v/images/profiles/%v", os.Getenv("BASE_URL"), v.UserPhoto)
+		}
 		getOwUserRes.UserGender = v.UserGender
 		getOwUserRes.UserTglLahir = v.UserTglLahir.Format("2006-01-02")
 		getOwUserRes.UserAddress = v.UserAddress

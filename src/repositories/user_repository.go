@@ -41,6 +41,7 @@ func (db *userConnection) CreatePassword(userCreatePasswordRequest request.UserC
 		err := fmt.Errorf("user tidak ditemukan")
 		return err
 	}
+	print(userId)
 	db.connection.Where("user_id = ?", &userId).First(&user)
 	user.UserPassword = hashAndSalt([]byte(userCreatePasswordRequest.Password))
 	user.UserStatus = "complete"

@@ -32,7 +32,7 @@ func (c *authController) CheckPhone(ctx *gin.Context) {
 	var authResponse response.AuthResponse
 	err := ctx.ShouldBind(&chekPhoneRequest)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
 		})
@@ -69,7 +69,7 @@ func (c *authController) SignUp(ctx *gin.Context) {
 	var authResponse response.AuthResponse
 	err := ctx.ShouldBind(&authSignUpRequest)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
 		})
@@ -97,7 +97,7 @@ func (c *authController) SignIn(ctx *gin.Context) {
 	var authResponse response.AuthResponse
 	err := ctx.ShouldBind(&authSignInRequest)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
 		})
