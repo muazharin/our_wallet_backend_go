@@ -47,8 +47,10 @@ func (c *transController) CreateTransaction(ctx *gin.Context) {
 	}
 	// mengecek extension file
 	for _, v := range transCreateReq.TransFile {
+		fmt.Println(v.Header["Content-Type"][0])
 		switch v.Header["Content-Type"][0] {
 		case "image/png":
+		case "application/octet-stream":
 		case "image/jpg":
 		case "image/jpeg":
 		default:
