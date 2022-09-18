@@ -49,7 +49,14 @@ func main() {
 	setupLogOutput()
 	r := gin.New()
 	r.StaticFS("/images", http.Dir("./src/images"))
-	r.Use(gin.Recovery(), middlewares.Logger(), middlewares.CORSMiddleware(), middlewares.APIKey())
+	r.Use(gin.Recovery(), middlewares.Logger(), middlewares.CORSMiddleware(), middlewares.APIKey(), middlewares.TimeoutMiddleware())
+
+	r.NoRoute(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "not found",
+		})
+	})
 
 	authRoutes := r.Group("/v1/auth")
 	{
