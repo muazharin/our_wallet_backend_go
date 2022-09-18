@@ -58,9 +58,7 @@ func (db *owConnection) GetForMember(owGetUserReq request.OwGetUserReq) ([]datab
 	var err *gorm.DB
 	if owGetUserReq.Keyword != "" {
 		err = db.connection.Model(&database.Users{}).
-			Or("user_email LIKE ?", "%"+keyword+"%").
-			Or("user_phone LIKE ?", "%"+keyword+"%").
-			Where("user_id NOT IN ? AND user_name LIKE ?", listId, "%"+keyword+"%").
+			Where("user_id NOT IN ? AND (user_name LIKE ? OR user_email LIKE ? OR user_phone LIKE ?)", listId, "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%").
 			Offset((int(owGetUserReq.Page) - 1) * 10).Limit(10).
 			Scan(&users)
 	} else {
