@@ -105,7 +105,6 @@ func (s *transService) GetAllTransByWalletId(transWalletId request.TransByWallet
 		transByWalletIdRes.TransUser.TransUserPhoto = users.UserPhoto
 		if users.UserPhoto != "" {
 			transByWalletIdRes.TransUser.TransUserPhoto = fmt.Sprintf("%v/images/profiles/%v", os.Getenv("BASE_URL"), users.UserPhoto)
-
 		}
 		transByWalletIdRess = append(transByWalletIdRess, transByWalletIdRes)
 

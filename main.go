@@ -5,12 +5,18 @@ import (
 	"net/http"
 	"os"
 
+	// "os/signal"
+	// "syscall"
+	"fmt"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/muazharin/our_wallet_backend_go/config"
 	"github.com/muazharin/our_wallet_backend_go/src/controllers"
 	"github.com/muazharin/our_wallet_backend_go/src/middlewares"
 	"github.com/muazharin/our_wallet_backend_go/src/repositories"
 	"github.com/muazharin/our_wallet_backend_go/src/services"
+	cron "github.com/robfig/cron/v3"
 	"gorm.io/gorm"
 )
 
@@ -45,8 +51,23 @@ func setupLogOutput() {
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 }
 
+func runningCronJob() {
+	jakartaTime, _ := time.LoadLocation("Asia/Jakarta")
+	scheduler := cron.New(cron.WithLocation(jakartaTime))
+	defer scheduler.Stop()
+	scheduler.AddFunc("* * * * *", tryCronJob)
+	go scheduler.Start()
+	// sig := make(chan os.Signal, 1)
+	// signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)<-sig
+}
+
+func tryCronJob() {
+	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
+}
+
 func main() {
 	setupLogOutput()
+	// runningCronJob()
 	r := gin.New()
 	r.StaticFS("/images", http.Dir("./src/images"))
 	r.Use(gin.Recovery(), middlewares.Logger(), middlewares.CORSMiddleware(), middlewares.APIKey(), middlewares.TimeoutMiddleware())

@@ -6,6 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/muazharin/our_wallet_backend_go/src/entities/request"
 	"github.com/muazharin/our_wallet_backend_go/src/entities/response"
+
+	// "github.com/muazharin/our_wallet_backend_go/src/middlewares"
 	"github.com/muazharin/our_wallet_backend_go/src/services"
 )
 
@@ -85,6 +87,7 @@ func (c *authController) SignUp(ctx *gin.Context) {
 	}
 	authResponse.Token = c.jwtService.GenerateToken(res)
 	authResponse.UserStatus = res.UserStatus
+
 	ctx.JSON(http.StatusCreated, gin.H{
 		"status":  true,
 		"message": "Selamat! Anda telah terdaftar",
@@ -113,6 +116,7 @@ func (c *authController) SignIn(ctx *gin.Context) {
 	}
 	authResponse.Token = c.jwtService.GenerateToken(res)
 	authResponse.UserStatus = res.UserStatus
+	// middlewares.FCM()
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "Selamat! Anda berhasil login",
