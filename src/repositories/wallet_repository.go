@@ -13,6 +13,7 @@ type WalletRepo interface {
 	GetInvitationWallet(userId int64, page int64) ([]database.Wallets, error)
 	CreateWallet(wallet database.Wallets, our_wallet database.OurWallet) error
 	UpdateWallet(wallet database.Wallets, userId int64, isAdmin bool) error
+	DeleteWallet(wallet database.Wallets, userId int64) error
 }
 
 type walletConnection struct {
@@ -91,6 +92,28 @@ func (db *walletConnection) UpdateWallet(wallet database.Wallets, userId int64, 
 	res = db.connection.Save(&wallet)
 	if res.Error != nil {
 		res.Error = fmt.Errorf("gagal mengupdate wallet")
+		return res.Error
+	}
+	return nil
+}
+
+func (db *walletConnection) DeleteWallet(wallet database.Wallets, userId int64) error {
+	var ow database.OurWallet
+	res := db.connection.Where(&database.OurWallet{
+		OwWalletID:     wallet.WalletID,
+		OwUserID:       userId,
+		OwIsAdmin:      true,
+		OwIsUserActive: 1,
+	}).First(&ow)
+
+	if res.Error != nil {
+		res.Error = fmt.Errorf("anda tidak memiliki hak akses")
+		return res.Error
+	}
+
+	res = db.connection.Save(&wallet)
+	if res.Error != nil {
+		res.Error = fmt.Errorf("gagal menghapus wallet")
 		return res.Error
 	}
 	return nil

@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -86,6 +87,7 @@ func (c *userController) UpdatePhoto(ctx *gin.Context) {
 	userPhotoReq.UserId, _ = strconv.ParseInt(userID, 10, 64)
 	err := ctx.ShouldBind(&userPhotoReq)
 	if err != nil {
+		fmt.Println(1)
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err,
@@ -95,6 +97,7 @@ func (c *userController) UpdatePhoto(ctx *gin.Context) {
 	case "image/png":
 	case "image/jpg":
 	case "image/jpeg":
+	case "application/octet-stream":
 	default:
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -105,6 +108,7 @@ func (c *userController) UpdatePhoto(ctx *gin.Context) {
 
 	res, err := c.userService.UpdatePhoto(userPhotoReq)
 	if err != nil {
+		fmt.Println(3)
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),
@@ -114,16 +118,19 @@ func (c *userController) UpdatePhoto(ctx *gin.Context) {
 
 	path := fmt.Sprintf("src/images/profiles/%s", res.UserPhoto)
 	if err := ctx.SaveUploadedFile(userPhotoReq.UserPhoto, path); err != nil {
+		fmt.Println(4)
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": "Gagal upload foto :" + err.Error(),
 		})
 		return
 	}
+	newPath := fmt.Sprintf("%v/images/profiles/%v", os.Getenv("BASE_URL"), res.UserPhoto)
 
 	ctx.JSON(http.StatusCreated, gin.H{
 		"status":  true,
 		"message": "Berhasil mengubah foto profile",
+		"path":    &newPath,
 	})
 }
 

@@ -13,6 +13,7 @@ type WalletService interface {
 	GetInvitationWallet(userId int64, page int64) ([]database.Wallets, error)
 	CreateWallet(createwallet request.WalletCreateReq, userId int64) error
 	UpdateWallet(updatewallet request.WalletUpdateReq, userId int64) error
+	DeleteWallet(walletId int64, userId int64) error
 }
 
 type walletService struct {
@@ -75,6 +76,19 @@ func (s *walletService) UpdateWallet(updatewallet request.WalletUpdateReq, userI
 	wallet.WalletMoney = updatewallet.Money
 	wallet.WalletUpdatedAt = time.Now()
 	err = s.walletRepo.UpdateWallet(wallet, userId, true)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *walletService) DeleteWallet(walletId int64, userId int64) error {
+	wallet, err := s.walletRepo.GetWalletById(walletId)
+	if err != nil {
+		return err
+	}
+	wallet.WalletIsActive = false
+	err = s.walletRepo.DeleteWallet(wallet, userId)
 	if err != nil {
 		return err
 	}

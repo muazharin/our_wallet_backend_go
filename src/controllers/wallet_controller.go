@@ -17,6 +17,7 @@ type WalletController interface {
 	GetInvitationWallet(ctx *gin.Context)
 	CreateWallet(ctx *gin.Context)
 	UpdateWallet(ctx *gin.Context)
+	DeleteWallet(ctx *gin.Context)
 }
 
 type walletController struct {
@@ -115,6 +116,7 @@ func (c *walletController) GetAllWallet(ctx *gin.Context) {
 		"data":    &res,
 	})
 }
+
 func (c *walletController) GetInvitationWallet(ctx *gin.Context) {
 	page, _ := strconv.ParseInt(ctx.Request.URL.Query().Get("page"), 10, 64)
 	authHeader := ctx.GetHeader("Authorization")
@@ -141,6 +143,26 @@ func (c *walletController) GetInvitationWallet(ctx *gin.Context) {
 		"status":  true,
 		"message": "menampilkan data",
 		"data":    &res,
+	})
+}
+
+func (c *walletController) DeleteWallet(ctx *gin.Context) {
+	walletId, _ := strconv.ParseInt(ctx.Request.URL.Query().Get("wallet_id"), 10, 64)
+	authHeader := ctx.GetHeader("Authorization")
+	authHeader = strings.Split(authHeader, "Bearer ")[1]
+	userId := c.getUserIDByToken(authHeader)
+	convertUserID, _ := strconv.ParseInt(userId, 10, 64)
+	err := c.walletService.DeleteWallet(walletId, convertUserID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusCreated, gin.H{
+		"status":  true,
+		"message": "Wallet berhasil dihapus",
 	})
 }
 

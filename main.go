@@ -7,8 +7,6 @@ import (
 
 	// "os/signal"
 	// "syscall"
-	"fmt"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/muazharin/our_wallet_backend_go/config"
@@ -16,7 +14,6 @@ import (
 	"github.com/muazharin/our_wallet_backend_go/src/middlewares"
 	"github.com/muazharin/our_wallet_backend_go/src/repositories"
 	"github.com/muazharin/our_wallet_backend_go/src/services"
-	cron "github.com/robfig/cron/v3"
 	"gorm.io/gorm"
 )
 
@@ -51,19 +48,19 @@ func setupLogOutput() {
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 }
 
-func runningCronJob() {
-	jakartaTime, _ := time.LoadLocation("Asia/Jakarta")
-	scheduler := cron.New(cron.WithLocation(jakartaTime))
-	defer scheduler.Stop()
-	scheduler.AddFunc("* * * * *", tryCronJob)
-	go scheduler.Start()
-	// sig := make(chan os.Signal, 1)
-	// signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)<-sig
-}
+// func runningCronJob() {
+// 	jakartaTime, _ := time.LoadLocation("Asia/Jakarta")
+// 	scheduler := cron.New(cron.WithLocation(jakartaTime))
+// 	defer scheduler.Stop()
+// 	scheduler.AddFunc("* * * * *", tryCronJob)
+// 	go scheduler.Start()
+// sig := make(chan os.Signal, 1)
+// signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)<-sig
+// }
 
-func tryCronJob() {
-	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
-}
+// func tryCronJob() {
+// 	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
+// }
 
 func main() {
 	setupLogOutput()
@@ -86,7 +83,7 @@ func main() {
 		authRoutes.POST("/check_phone_number", authController.CheckPhone)
 	}
 
-	userRoutes := r.Group("/v1/user", middlewares.AuthorizeJWT(jwtService))
+	userRoutes := r.Group("/v1/user", middlewares.AuthorizeJWT(jwtService, authRepo))
 	{
 		userRoutes.PUT("/create_password", userController.CreatePassword)
 		userRoutes.PUT("/update_photo", userController.UpdatePhoto)
@@ -94,7 +91,7 @@ func main() {
 
 	}
 
-	catergoryRoutes := r.Group("/v1/category", middlewares.AuthorizeJWT(jwtService))
+	catergoryRoutes := r.Group("/v1/category", middlewares.AuthorizeJWT(jwtService, authRepo))
 	{
 		catergoryRoutes.POST("/add_category", categoryController.AddCategory)
 		catergoryRoutes.PUT("/update_category", categoryController.UpdateCategory)
@@ -102,15 +99,16 @@ func main() {
 		catergoryRoutes.GET("/get_all_category", categoryController.GetAllCategory)
 	}
 
-	walletRoutes := r.Group("/v1/wallet", middlewares.AuthorizeJWT(jwtService))
+	walletRoutes := r.Group("/v1/wallet", middlewares.AuthorizeJWT(jwtService, authRepo))
 	{
 		walletRoutes.POST("/create_wallet", walletController.CreateWallet)
 		walletRoutes.PUT("/update_wallet", walletController.UpdateWallet)
 		walletRoutes.GET("/get_all_wallet", walletController.GetAllWallet)
 		walletRoutes.GET("/get_invitation_wallet", walletController.GetInvitationWallet)
+		walletRoutes.PUT("/delete_wallet", walletController.DeleteWallet)
 	}
 
-	owRoutes := r.Group("/v1/ow", middlewares.AuthorizeJWT(jwtService))
+	owRoutes := r.Group("/v1/ow", middlewares.AuthorizeJWT(jwtService, authRepo))
 	{
 		owRoutes.GET("/get_ow_user", owController.GetOwUser)
 		owRoutes.GET("/get_for_member", owController.GetForMember)
@@ -119,13 +117,13 @@ func main() {
 		owRoutes.PUT("/confirm_invitation", owController.ConfirmInvitation)
 	}
 
-	notifRoutes := r.Group("/v1/notif", middlewares.AuthorizeJWT(jwtService))
+	notifRoutes := r.Group("/v1/notif", middlewares.AuthorizeJWT(jwtService, authRepo))
 	{
 		notifRoutes.GET("/get_all_notif", notifController.GetAllNotif)
 		notifRoutes.PUT("/is_read_notif", notifController.IsReadNotif)
 	}
 
-	transRoutes := r.Group("/v1/trans", middlewares.AuthorizeJWT(jwtService))
+	transRoutes := r.Group("/v1/trans", middlewares.AuthorizeJWT(jwtService, authRepo))
 	{
 		transRoutes.POST("/create_trans", transController.CreateTransaction)
 		transRoutes.GET("/get_all_by_wallet_id", transController.GetAllTransByWalletId)
