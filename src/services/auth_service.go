@@ -16,6 +16,7 @@ type AuthService interface {
 	CheckPhone(checkPhoneRequest request.AuthCheckPhoneRequest) (int64, response.AuthSignUpResponse, error)
 	SignUp(authSignUpRequest request.AuthSignUpRequest) (response.AuthSignUpResponse, error)
 	SignIn(authSignInRequest request.AuthSignInRequest) (response.AuthSignUpResponse, error)
+	SignOut(authSignOutRequest request.AuthSignOutRequest, userId int64) error
 }
 
 type authService struct {
@@ -104,6 +105,11 @@ func (s *authService) SignIn(authSignInRequest request.AuthSignInRequest) (respo
 	}
 
 	if (res.UserName == authSignInRequest.UserName || res.UserEmail == authSignInRequest.UserName || res.UserPhone == authSignInRequest.UserName) && compared {
+		firebaseToken := database.FirebaseToken{}
+		firebaseToken.FirebaseTokenID = time.Now().Unix()
+		firebaseToken.FirebaseTokenUserID = res.UserID
+		firebaseToken.FirebaseTokenString = authSignInRequest.UserFirebaseToken
+		s.authRepo.SaveToken(firebaseToken)
 		authSignUpResponse.UserID = res.UserID
 		authSignUpResponse.UserName = res.UserName
 		authSignUpResponse.UserPassword = res.UserPassword
@@ -124,6 +130,14 @@ func (s *authService) SignIn(authSignInRequest request.AuthSignInRequest) (respo
 
 	err = fmt.Errorf("user tidak ditemukan")
 	return authSignUpResponse, err
+}
+
+func (s *authService) SignOut(authSignOutRequest request.AuthSignOutRequest, userId int64) error {
+	err := s.authRepo.SignOut(authSignOutRequest, userId)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func comparePassword(hashedPwd string, plainPassword []byte) (bool, error) {

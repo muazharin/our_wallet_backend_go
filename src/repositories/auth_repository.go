@@ -12,6 +12,8 @@ type AuthRepo interface {
 	CheckAccount(username string, email string, phone string) (int64, database.Users, error)
 	SignUp(user database.Users) error
 	SignIn(authSignInRequest request.AuthSignInRequest) (database.Users, error)
+	SignOut(authSignOutRequest request.AuthSignOutRequest, userId int64) error
+	SaveToken(firebaseToken database.FirebaseToken) bool
 }
 
 type authConnection struct {
@@ -49,4 +51,25 @@ func (db *authConnection) SignIn(authSignInRequest request.AuthSignInRequest) (d
 		return user, res.Error
 	}
 	return user, nil
+}
+
+func (db *authConnection) SignOut(authSignOutRequest request.AuthSignOutRequest, userId int64) error {
+	var firebaseToken database.FirebaseToken
+	res := db.connection.Where(&database.FirebaseToken{
+		FirebaseTokenUserID: userId,
+		FirebaseTokenString: authSignOutRequest.UserFirebaseToken,
+	}).Delete(&firebaseToken)
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
+}
+
+func (db *authConnection) SaveToken(firebaseToken database.FirebaseToken) bool {
+	res := db.connection.Save(&firebaseToken)
+	if res.Error != nil {
+		fmt.Println(res.Error)
+		return false
+	}
+	return true
 }

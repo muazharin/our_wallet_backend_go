@@ -6,5 +6,6 @@ type Notification struct {
 	NotificationReceiverID int64  `gorm:"not null" json:"notification_receiver_id"`
 	NotificationMessage    string `gorm:"type:text" json:"notification_message"`
 	NotificationRoute      string `gorm:"type:varchar(100)" json:"notification_route"`
+	NotificationArgument   string `gorm:"type:varchar(100)" json:"notification_argument"`
 	NotificationIsRead     bool   `gorm:"not null" json:"notification_is_read"`
 }

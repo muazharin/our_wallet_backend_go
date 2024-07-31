@@ -1,15 +1,20 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
+	firebase "firebase.google.com/go"
+	"firebase.google.com/go/messaging"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/muazharin/our_wallet_backend_go/src/entities/request"
 	"github.com/muazharin/our_wallet_backend_go/src/services"
+	"google.golang.org/api/option"
 )
 
 type OWController interface {
@@ -117,7 +122,7 @@ func (c *owController) AddMember(ctx *gin.Context) {
 		})
 		return
 	}
-	err = c.owService.AddMember(owAddMemberReq, convertedUserID)
+	res, err := c.owService.AddMember(owAddMemberReq, convertedUserID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
@@ -125,9 +130,29 @@ func (c *owController) AddMember(ctx *gin.Context) {
 		})
 		return
 	}
+	credential := os.Getenv("CREDENTIAL_FIREBASE")
+	project_id := os.Getenv("PROJECT_ID_FIREBASE")
+	opt := option.WithCredentialsFile(credential)
+	config := &firebase.Config{ProjectID: project_id}
+	app, _ := firebase.NewApp(context.Background(), config, opt)
+	fcmC, _ := app.Messaging(context.Background())
+
+	var msgs []*messaging.Message
+	for i := 0; i < len(res); i++ {
+		msgs = append(msgs, &messaging.Message{
+			Notification: &messaging.Notification{
+				Title: fmt.Sprintf("%v", "Notifikasi"),
+				Body:  fmt.Sprintf("%v", "Anda memiliki 1 undangan menjadi anggota wallet"),
+			},
+			Token: res[i].FirebaseTokenString,
+		})
+	}
+	response, _ := fcmC.SendAll(context.Background(), msgs)
+	fmt.Println(response)
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":  true,
-		"message": "User berhasil ditambahkan",
+		"message": "User berhasil ditambahkan. Sedang menunggu konfirmasi.",
 	})
 }
 
@@ -165,8 +190,9 @@ func (c *owController) ConfirmInvitation(ctx *gin.Context) {
 	authHeader = strings.Split(authHeader, "Bearer ")[1]
 	userID := c.getUserIDByToken(authHeader)
 	convertedUserID, _ := strconv.ParseInt(userID, 10, 64)
-	err := ctx.ShouldBind(&confirmInvitation)
+	err := ctx.Bind(&confirmInvitation)
 	if err != nil {
+		fmt.Println(confirmInvitation.ConfirmReply)
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"status":  false,
 			"message": err.Error(),

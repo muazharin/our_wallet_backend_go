@@ -66,7 +66,7 @@ func (s *transService) CreateTransaction(transCreateReq request.TransCreateReq, 
 	if err != nil {
 		return nil, err
 	}
-	if transCreateReq.TransType == "Kredit" {
+	if transCreateReq.TransType == "Debit" {
 		wallet.WalletMoney = (wallet.WalletMoney + transCreateReq.TransPrice)
 	} else {
 		wallet.WalletMoney = (wallet.WalletMoney - transCreateReq.TransPrice)

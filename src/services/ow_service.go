@@ -14,7 +14,7 @@ import (
 type OWService interface {
 	GetOwUser(owGetUserReq request.OwGetUserReq) ([]response.GetOwUserRes, error)
 	GetForMember(owGetUserReq request.OwGetUserReq) ([]response.GetOwUserRes, error)
-	AddMember(owAddMemberReq request.OwAddMemberReq, userId int64) error
+	AddMember(owAddMemberReq request.OwAddMemberReq, userId int64) ([]database.FirebaseToken, error)
 	RemoveMember(owAddMemberReq request.OwAddMemberReq, userId int64) error
 	ConfirmInvitation(confirmInvitation request.OwConfirmInvitation, userId int64) error
 }
@@ -83,16 +83,18 @@ func (s *owService) GetForMember(owGetUserReq request.OwGetUserReq) ([]response.
 	return getOwUserRess, nil
 }
 
-func (s *owService) AddMember(owAddMemberReq request.OwAddMemberReq, userId int64) error {
+func (s *owService) AddMember(owAddMemberReq request.OwAddMemberReq, userId int64) ([]database.FirebaseToken, error) {
 	var owWallet database.OurWallet
 	var notif database.Notification
+	var firebaseTokens []database.FirebaseToken
 
 	// mengecek keanggotaan
 	count, err := s.owRepo.CheckMember(owAddMemberReq, userId)
 	if err != nil || count == 0 {
 		err = fmt.Errorf("anda tidak memiliki hak akses")
-		return err
+		return firebaseTokens, err
 	}
+
 	// mengajukan undangan
 	owWallet.OwID = time.Now().Unix()
 	owWallet.OwUserID = owAddMemberReq.OwMemberId
@@ -102,18 +104,23 @@ func (s *owService) AddMember(owAddMemberReq request.OwAddMemberReq, userId int6
 	owWallet.OwInviterID = userId
 	err = s.owRepo.AddMember(owWallet)
 	if err != nil {
-		return err
+		return firebaseTokens, err
 	}
+
+	// menarik data firebase token
+	res, _ := s.owRepo.GetFirebaseTokens(owAddMemberReq.OwMemberId)
+	firebaseTokens = res
 
 	// mengirim notifikasi kepada calon member
 	notif.NotificationID = time.Now().Unix()
 	notif.NotificationPusherID = userId
 	notif.NotificationReceiverID = owAddMemberReq.OwMemberId
 	notif.NotificationMessage = "Anda memiliki 1 undangan menjadi anggota wallet"
-	notif.NotificationRoute = "/"
+	notif.NotificationRoute = "/invitation"
+	notif.NotificationArgument = fmt.Sprintf("{\"wallet_id\":%v}", owWallet.OwWalletID)
 	notif.NotificationIsRead = false
 	s.notifRepo.SendNotif(notif)
-	return nil
+	return firebaseTokens, err
 }
 
 func (s *owService) RemoveMember(owAddMemberReq request.OwAddMemberReq, userId int64) error {

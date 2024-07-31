@@ -80,6 +80,7 @@ func main() {
 	{
 		authRoutes.POST("/signup", authController.SignUp)
 		authRoutes.POST("/signin", authController.SignIn)
+		authRoutes.POST("/signout", authController.SignOut)
 		authRoutes.POST("/check_phone_number", authController.CheckPhone)
 	}
 

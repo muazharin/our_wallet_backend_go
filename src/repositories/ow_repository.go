@@ -14,6 +14,7 @@ type OWRepo interface {
 	GetForMember(owGetUserReq request.OwGetUserReq) ([]database.Users, error)
 	CheckMember(owAddMemberReq request.OwAddMemberReq, userId int64) (int64, error)
 	AddMember(owWallet database.OurWallet) error
+	GetFirebaseTokens(userId int64) ([]database.FirebaseToken, error)
 	RemoveMember(owAddMemberReq request.OwAddMemberReq) (string, error)
 	ConfirmInvitation(confirmInvitation request.OwConfirmInvitation, userId int64) (database.OurWallet, error)
 }
@@ -111,6 +112,17 @@ func (db *owConnection) AddMember(owWallet database.OurWallet) error {
 	return nil
 }
 
+func (db *owConnection) GetFirebaseTokens(userId int64) ([]database.FirebaseToken, error) {
+	var firebaseTokens []database.FirebaseToken
+	err := db.connection.Model(&database.FirebaseToken{
+		FirebaseTokenUserID: userId,
+	}).Scan(&firebaseTokens)
+	if err.Error != nil {
+		return nil, err.Error
+	}
+	return firebaseTokens, nil
+}
+
 func (db *owConnection) RemoveMember(owAddMemberReq request.OwAddMemberReq) (string, error) {
 	var owWallet database.OurWallet
 	var wallet database.Wallets
@@ -156,5 +168,4 @@ func (db *owConnection) ConfirmInvitation(confirmInvitation request.OwConfirmInv
 		return owWallet, err.Error
 	}
 	return owWallet, nil
-
 }
